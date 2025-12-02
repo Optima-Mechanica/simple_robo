@@ -1,0 +1,299 @@
+<html>
+    <head>
+        <title>Robot controller</title>
+
+        <script type="text/javascript" src="/static/js/jquery-3.7.1.min.js"></script>
+        <script type="text/javascript" src="/static/js/joystick/joy.js"></script>
+        <script type="text/javascript" src="/static/js/input-knobs/input-knobs.js"></script>
+
+        <style>
+        .joystick
+        {
+            width: 150px;
+            height: 150px;
+            margin: 50px;
+            background-image: url('/static/images/joystick-base.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+
+        #controller
+        {
+            background-image: url('/static/images/pip_bg.png');
+            background-repeat: no-repeat;
+            height: 100%;
+            width: 100%;
+            border: 0;
+            margin: 0;
+        }
+
+		.view
+		{
+			/*border-radius: 25px;*/
+			border-top-left-radius: 100% 35px;
+  			border-top-right-radius: 100% 35px;
+			border-bottom-left-radius: 100% 35px;
+  			border-bottom-right-radius: 100% 35px;
+			position: relative;
+            left: 280px;
+            top: 227px;
+            width: 635px;
+            height: 565px;
+			opacity: 0.9;
+			background-image: url(/video_feed);
+		}
+
+        #joystick_direction_div
+        {
+            position: relative;
+            left: 320px;
+            top: 465px;
+        }
+
+        #joystick_camera_div
+        {
+            position: relative;
+            left: 280px;
+            top: 465px;
+        }
+
+        #reset_div
+        {
+            position: relative;
+            left: -112px;
+            top: -162px;
+        }
+
+        #zoom_div
+        {
+            position: relative;
+            left: 970px;
+            top: -576px;
+        }
+
+        #focus_div
+        {
+            position: relative;
+            left: 1078px;
+            top: -568px;
+
+            width: 40px;
+            height: 80px;
+
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        #autofocus_switch
+        {
+            position: relative;
+            left: 0px;
+            top: 14px;
+        }
+
+        #controls
+        {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            justify-content: space-between; /* Distributes space between items */
+        }
+
+        .column
+        {
+            padding: 15px;
+            flex: 1; /* Allows the divs to grow and shrink to fill available space */
+            text-align: center;
+            justify-content: center; /* Горизонтальное выравнивание */
+            align-items: center;
+        }
+
+        .round-button
+        {
+            width: 70px;
+            height: 65px;
+			position: relative;
+			left: -10px;
+			top: -3px;
+            border-radius: 50%;
+            background-color: #ff7b00;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; /* For centering content */
+            justify-content: center; /* For centering content */
+            align-items: center; /* For centering content */
+        }
+
+        .round-button:hover
+        {
+            background-color: #ff0000; /* Example hover effect */
+            transform: translate3d(0 0.95 0.99);
+        }
+
+        .round-button:active
+        {
+            transform: translateY(0 0.9 0.9);
+        }
+        </style>
+
+    </head>
+    <body>
+        <div id="controller">
+            <div class="view" id="video">
+            </div>
+
+            <div id="controls">
+                <div class="column">
+                    <div id="joystick_direction_div" class="joystick"></div>
+                </div>
+                <div class="column">
+                    <div id="joystick_camera_div" class="joystick"></div>
+                    <div id="zoom_div">
+                        <input id="zoom" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/>
+                    </div>
+                    <div id="focus_div">
+                        <input id="focus" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/>
+                        <input checked="true" caption="Автофокус" id="autofocus_switch" type="checkbox" class="input-switch"
+						 data-src="/static/js/input-knobs/images/switch_offon.png" data-diameter="50"/>
+                    </div>
+                    <div id="reset_div">
+                        <img id="reset" class="round-button" src="/static/images/reset_pip.png" alt="Reset">
+                    </div>
+                    </div>
+                    <div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <script type="text/javascript">
+            function send_position()
+            {
+                console.log("send_position()")
+
+                direction= {
+                    "direction": joystick_direction.GetDir(),
+                    "x": joystick_direction.GetX(),
+                    "y": joystick_direction.GetY(),
+                };
+
+                console.log(direction);
+                $.ajax("/api/motion/direction",
+                {
+                    type : 'POST',
+                    data : JSON.stringify(direction),
+                    contentType : 'application/json',
+                    success: function(response)
+                    {
+                        console.log("Success:", response);
+                    },
+                    error: function(xhr, status, error)
+                    {
+                        console.error("Error:", status, error);
+                    }
+                });
+            }
+
+            function send_ptz()
+            {
+                console.log("send_ptz()")
+
+                ptz_record = {
+                    "pan": Math.floor(Number(joystick_camera.GetX()) / 20),
+                    "tilt": Math.floor(Number(joystick_camera.GetY()) / 20),
+                    "zoom": Number($("#zoom").val())
+                };
+
+                console.log(ptz_record);
+                $.ajax("/api/camera/ptz",
+                {
+                    type : 'POST',
+                    data : JSON.stringify(ptz_record),
+                    contentType : 'application/json',
+                    success: function(response)
+                    {
+                        console.log("Success:", response);
+                    },
+                    error: function(xhr, status, error)
+                    {
+                        console.error("Error:", status, error);
+                    }
+                });
+            }
+
+            function send_focus()
+            {
+                console.log("send_focus()")
+
+                focus = {
+                    "auto": Boolean($("#autofocus_switch").is(":checked")),
+                    "value": Number($("#focus").val())
+                };
+
+                console.log(focus);
+                $.ajax("/api/camera/focus",
+                {
+                    type : 'POST',
+                    data : JSON.stringify(focus),
+                    contentType : 'application/json',
+                    success: function(response)
+                    {
+                        console.log("Success:", response);
+                    },
+                    error: function(xhr, status, error)
+                    {
+                        console.error("Error:", status, error);
+                    }
+                });
+            }
+            // Create JoyStick object into the DIV 'joy1Div'
+            //var Joy1 = new JoyStick('joy1Div');
+
+            // Create JoyStick object into the DIV 'joy2Div'
+            var joystick_direction = new JoyStick("joystick_direction_div",
+                { "title": "joy_direction", "autoReturnToCenter": true,
+				  "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d"
+				}, send_position);
+
+            var joystick_camera = new JoyStick("joystick_camera_div",
+                { "title": "joy_camera", "autoReturnToCenter": true,
+				  "internalFillColor": "#c2933d", "internalStrokeColor": "#353a4a","externalStrokeColor": "#83928d" },
+                  send_ptz);
+
+            $("#controls").width($("#video").width())
+            $("#autofocus_switch").on("change", function()
+            {
+                $("#focus").prop("disabled", $("#autofocus_switch").is(":checked"));
+                send_focus();
+            });
+
+            $("#autofocus_switch").click();
+            $("#zoom").on("change", send_ptz);
+            $("#focus").on("change", send_focus);
+            $("#reset").on("click", function()
+            {
+                console.log("reset()");
+                $("#zoom").val(0);
+
+                $.ajax("/api/camera/reset",
+                {
+                    type : 'POST',
+                    contentType : 'application/json',
+                    success: function(response)
+                    {
+                        console.log("Success:", response);
+                    },
+                    error: function(xhr, status, error)
+                    {
+                        console.error("Error:", status, error);
+                    }
+                });
+            });
+
+
+        </script>
+    </body>
+</html>
