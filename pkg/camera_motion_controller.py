@@ -2,7 +2,8 @@ import logging
 import os
 import sys
 
-from third_party.cameractrls.cameractrls import CameraCtrls, PTZController
+from third_party.cameractrls.cameractrls import CameraCtrls, PTZController, \
+    V4L2_CID_FOCUS_ABSOLUTE, V4L2_CID_FOCUS_AUTO
 
 
 class CameraMotionController:
@@ -21,6 +22,12 @@ class CameraMotionController:
         self._ctrls = CameraCtrls(self._device, self._camera_fd)
         self._ptz = PTZController(self._ctrls)
         self._prev_zoom = 0
+        self._focus_absolute = self._ctrls.v4l_ctrls.find_by_v4l2_id(V4L2_CID_FOCUS_ABSOLUTE)
+        self._focus_auto = self._ctrls.v4l_ctrls.find_by_v4l2_id(V4L2_CID_FOCUS_AUTO)
+
+    @property
+    def has_ptz(self) -> bool:
+        return self._ctrls.has_ptz()
 
     def lift(self, value: int):
         errors = []
@@ -44,12 +51,11 @@ class CameraMotionController:
 
     def focus(self, auto: bool, value: int | None = None):
         errs = []
-        #self._ptz.get_ctrls()
 
-        self._ptz.ctrls.setup_ctrls({'focus_automatic_continuous': auto}, errs)
+        self._ptz.ctrls.setup_ctrls({self._focus_auto.text_id: auto}, errs)
 
         if value is not None:
-            self._ptz.ctrls.setup_ctrls({'focus_absolute': value}, errs)
+            self._ptz.ctrls.setup_ctrls({self._focus_absolute.text_id: value}, errs)
 
         return errs
 
@@ -67,9 +73,8 @@ class CameraMotionController:
 
         return errors
 
-    def get_controls(self):
-        return self._ctrls.get_ctrl_pages()
+    def get_controls(self, hierarchy: bool = True):
+        return self._ctrls.get_ctrl_pages() if hierarchy else self._ptz.get_ctrls()
 
-
-#self.ptz_controllers.terminate_all()
-
+    def __del__(self):
+        self._ctrls.terminate_all()
