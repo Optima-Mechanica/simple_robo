@@ -43,7 +43,7 @@ class V4LCapturer(CameraCapturer):
         ptr = (ctypes.c_uint8 * self._outbuffer.bytesused).from_buffer(self._outbuffer)
 
         if self._camera.pixelformat == V4L2_PIX_FMT_MJPEG or self._camera.pixelformat == V4L2_PIX_FMT_JPEG:
-            tj_decompress(self._tj, ptr, self._outbuffer.bytesused, self._outbuffer, self._camera.width,
+            tj_decompress(self._tj, ptr, self._outbuffer.size, self._outbuffer, self._camera.width,
                           self._bytesperline, self._camera.height, TJPF_RGB, 0)
             # Ignore decode errors, some cameras only send imperfect frames.
             ptr = self._outbuffer

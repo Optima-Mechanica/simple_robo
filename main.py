@@ -6,7 +6,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
 import uvicorn
-from typing import Optional, Union
 import logging
 from fastapi.templating import Jinja2Templates
 
@@ -18,10 +17,10 @@ SCRIPT_DIR = Path(__file__).parent
 STATIC_DIR = SCRIPT_DIR / 'pkg' / 'static'
 TP_DIR = SCRIPT_DIR / 'third_party'
 
-sys.path.extend([(TP_DIR / 'cameractrls').absolute(), TP_DIR.absolute()])
+sys.path.extend([str(sp) for sp in [(TP_DIR / 'cameractrls').absolute(), TP_DIR.absolute()]])
 
-from pkg.capturers.opencv2 import CV2Capturer as CameraCapturer
-#from pkg.capturers.v4l_cameractrls import V4LCapturer as CameraCapturer
+#from pkg.capturers.opencv2 import CV2Capturer as CameraCapturer
+from pkg.capturers.v4l_cameractrls import V4LCapturer as CameraCapturer
 #from pkg.capturers.ffmpeg import FFMPEGCapturer as CameraCapturer
 
 from pkg.camera_motion_controller import CameraMotionController
@@ -70,12 +69,26 @@ async def video_feed() -> StreamingResponse:
 
 @app.get('/')
 def entrypoint(request: Request):
-    # logger.debug('Requested /')
+    logging.debug('Requested /')
     return templates.TemplateResponse('index.html', {'request': request, 'name': 'World'})
 
 
 @app.post('/api/motion/direction')
 async def direction_set(direction: Direction):
+    # loop = asyncio.get_running_loop()
+    # loop.call_later(2, lambda: asyncio.create_task(my_callback_function("Hello from the timer!")))
+
+    geo_direction = {
+        'N': 'RfLf',
+        'S': 'RbLb',
+        'E': 'RbLf',
+        'W': 'RfLb',
+        'NE': 'Lf',
+        'NW': 'Rf',
+        'SE': 'Lb',
+        'SW': 'Rb',
+        'C': ''
+    }
     return {'message': 'Direction submitted successfully!', 'data': direction.model_dump_json() }
 
 
@@ -86,7 +99,8 @@ async def controls_get():
 
 @app.post('/api/camera/ptz')
 async def camera_ptz(ptz_record: PTZRecord, background_tasks: BackgroundTasks):
-    background_tasks.add_task(motion_controller.set_ptz, ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
+    # background_tasks.add_task(motion_controller.set_ptz, ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
+    motion_controller.set_ptz(ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
     return {'message': 'PTZ submitted successfully!', 'data': ptz_record.model_dump_json() }
 
 
