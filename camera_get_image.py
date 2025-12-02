@@ -10,7 +10,6 @@ import uvicorn
 from typing import Optional, Union
 import logging
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 
 import os
 from pathlib import Path
@@ -27,23 +26,7 @@ from pkg.capturers.opencv2 import CV2Capturer as CameraCapturer
 #from pkg.capturers.ffmpeg import FFMPEGCapturer as CameraCapturer
 
 from pkg.camera_motion_controller import CameraMotionController
-
-
-class PTZRecord(BaseModel):
-    pan: int
-    tilt: int
-    zoom: int
-
-
-class Focus(BaseModel):
-    auto: bool
-    value: Optional[int]
-
-
-class Direction(BaseModel):
-    direction: str
-    x: Optional[int]
-    y: Optional[int]
+from pkg.api_data_structures import PTZRecord, Focus, Direction
 
 
 async def gen_frames() -> AsyncGenerator[bytes, None]:
