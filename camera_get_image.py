@@ -31,8 +31,11 @@ from pkg.frame_generator import FrameGenerator
 
 capturer = CameraCapturer(4)
 frame_generator = FrameGenerator(capturer)
-templates = Jinja2Templates(directory=(STATIC_DIR /'templates'))
+templates = Jinja2Templates(directory=(STATIC_DIR / 'templates'))
 motion_controller = CameraMotionController(4)
+
+app = FastAPI()
+app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
 
 
 @asynccontextmanager
@@ -43,14 +46,13 @@ async def lifespan(app: FastAPI):
     try:
         yield
     except asyncio.exceptions.CancelledError as error:
-        print(error.args)
+        logging.error(error.args)
     finally:
         capturer.stop_capturing()
-        print('Camera resource released.')
+        logging.info('Camera resource released.')
 
 
-app = FastAPI(lifespan=lifespan)
-app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
+app.router.lifespan_context = lifespan
 
 
 @app.get('/video_feed')
