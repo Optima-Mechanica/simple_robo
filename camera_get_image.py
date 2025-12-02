@@ -4,7 +4,6 @@ import asyncio
 from fastapi import FastAPI, Request, Response, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse
-from typing import AsyncGenerator
 from contextlib import asynccontextmanager
 import uvicorn
 from typing import Optional, Union
@@ -27,27 +26,13 @@ from pkg.capturers.opencv2 import CV2Capturer as CameraCapturer
 
 from pkg.camera_motion_controller import CameraMotionController
 from pkg.api_data_structures import PTZRecord, Focus, Direction
+from pkg.frame_generator import FrameGenerator
 
 
-async def gen_frames() -> AsyncGenerator[bytes, None]:
-    """
-    An asynchronous generator function that yields camera frames.
-
-    :yield: JPEG encoded image bytes.
-    """
-    try:
-        while True:
-            frame = capturer.capture_image()
-            if frame:
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            else:
-                break
-            await asyncio.sleep(0)
-    except (asyncio.CancelledError, GeneratorExit):
-        print('Frame generation cancelled.')
-    finally:
-        print('Frame generator exited.')
+capturer = CameraCapturer(4)
+frame_generator = FrameGenerator(capturer)
+templates = Jinja2Templates(directory=(STATIC_DIR /'templates'))
+motion_controller = CameraMotionController(4)
 
 
 @asynccontextmanager
@@ -63,10 +48,9 @@ async def lifespan(app: FastAPI):
         capturer.stop_capturing()
         print('Camera resource released.')
 
+
 app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
-templates = Jinja2Templates(directory=(STATIC_DIR /'templates'))
-motion_controller = CameraMotionController(4)
 
 
 @app.get('/video_feed')
@@ -77,7 +61,7 @@ async def video_feed() -> StreamingResponse:
     :return: StreamingResponse with multipart JPEG frames.
     """
     return StreamingResponse(
-        gen_frames(),
+        frame_generator(),
         media_type='multipart/x-mixed-replace; boundary=frame'
     )
 
@@ -86,6 +70,7 @@ async def video_feed() -> StreamingResponse:
 def entrypoint(request: Request):
     # logger.debug('Requested /')
     return templates.TemplateResponse('index.html', {'request': request, 'name': 'World'})
+
 
 @app.post('/api/motion/direction')
 async def direction_set(direction: Direction):
@@ -119,11 +104,11 @@ async def camera_reset():
 #    return Response(prebuilt_html(title='FastUI Button Example'))
 
 
-async def main():
+async def main(host: str = '0.0.0.0', port: int = 8000):
     """
     Main entry point to run the Uvicorn server.
     """
-    config = uvicorn.Config(app, host='0.0.0.0', port=8000)
+    config = uvicorn.Config(app, host=host, port=port)
     server = uvicorn.Server(config)
 
     # Run the server
@@ -131,15 +116,6 @@ async def main():
 
 
 if '__main__' == __name__:
-    # Usage example: Streaming default camera for local webcam:
-    capturer = CameraCapturer(4)
-
-    # Usage example: Streaming the camera for a specific camera index:
-    # camera = Camera(0)
-
-    # Usage example 3: Streaming an IP camera:
-    # camera = Camera('rtsp://user:password@ip_address:port/')
-
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
