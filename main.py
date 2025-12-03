@@ -43,6 +43,9 @@ async def lifespan(app: FastAPI):
     Lifespan context manager for startup and shutdown events.
     """
     try:
+        logging.info('Video capturing starting...')
+        capturer.start_capturing()
+        logging.info('Capturing started.')
         yield
     except asyncio.exceptions.CancelledError as error:
         logging.error(error.args)
@@ -50,9 +53,7 @@ async def lifespan(app: FastAPI):
         capturer.stop_capturing()
         logging.info('Camera resource released.')
 
-
 app.router.lifespan_context = lifespan
-
 
 @app.get('/video_feed')
 async def video_feed() -> StreamingResponse:
@@ -124,6 +125,7 @@ async def main(host: str = '0.0.0.0', port: int = 8000):
     """
     Main entry point to run the Uvicorn server.
     """
+
     config = uvicorn.Config(app, host=host, port=port)
     server = uvicorn.Server(config)
 
@@ -136,3 +138,4 @@ if '__main__' == __name__:
         asyncio.run(main())
     except KeyboardInterrupt:
         print('Server stopped by user.')
+

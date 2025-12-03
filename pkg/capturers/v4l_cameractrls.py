@@ -2,10 +2,9 @@ import ctypes
 from fcntl import ioctl
 import io
 import logging
-import select
+from select import poll, POLLIN
 import struct
 import sys
-
 
 from third_party.cameractrls.cameractrls import V4L2_PIX_FMT_YUYV, V4L2_PIX_FMT_YVYU, V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YU12, V4L2_PIX_FMT_YV12
 from third_party.cameractrls.cameractrls import V4L2_PIX_FMT_NV12, V4L2_PIX_FMT_NV21  #, V4L2_PIX_FMT_GREY
@@ -49,13 +48,15 @@ class V4LCapturer(CameraCapturer):
 
         self._qbuf = None
         self._image = None
+        self._poll = poll()
 
     def start_capturing(self):
         # self._camera.start()
+
         try:
             ioctl(self._camera.fd, VIDIOC_STREAMON, struct.pack('I', V4L2_BUF_TYPE_VIDEO_CAPTURE))
         except Exception as e:
-            logging.error('VIDIOC_STREAMON failed %s: %s', self.device, e)
+            logging.error('VIDIOC_STREAMON failed %s: %s', self._camera.device, e)
             return
 
         for buf in self._camera.cap_bufs:
@@ -64,46 +65,39 @@ class V4LCapturer(CameraCapturer):
         self._qbuf = v4l2_buffer()
         self._qbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
         self._qbuf.memory = self._camera.cap_bufs[0].memory
+        self._poll.register(self._camera.fd, POLLIN)
 
     def stop_capturing(self):
-        self._camera.stop()
-
         try:
             ioctl(self._camera.fd, VIDIOC_STREAMOFF, struct.pack('I', V4L2_BUF_TYPE_VIDEO_CAPTURE))
         except Exception as e:
             logging.error('VIDIOC_STREAMOFF failed %s: %s', self._camera.device, e)
 
     def _capture(self):
-        if self._qbuf is None:
-            self.start_capturing()
-
-        poll = select.poll()
-        poll.register(self._camera.fd, select.POLLIN)
-
-        timeout = 0
+        qbuf = self._qbuf
+        camera = self._camera
+        camera_fd = camera.fd
 
         # DQBUF can block forever, so poll with 1000 ms timeout before
-        # quit after 5s
-        if len(poll.poll(1000)) == 0:
-           logging.warning('%s: timeout occured', self._camera.device)
-           timeout += 1
-           if timeout == 5:
-                self.write_buf(None)
-                return
+        # quit after 0.1s.
+        if 0 == len(self._poll.poll(100)):
+           logging.warning('%s: timeout occured', camera.device)
+           return
+
         try:
-            ioctl(self._camera.fd, VIDIOC_DQBUF, self._qbuf)
+            ioctl(camera_fd, VIDIOC_DQBUF, qbuf)
         except Exception as e:
-            logging.error('VIDIOC_DQBUF failed %s: %s', self._camera.device, e)
+            logging.error('VIDIOC_DQBUF failed %s: %s', camera.device, e)
             # self.pipe.write_buf(None)
             return
 
-        buf = self._camera.cap_bufs[self._qbuf.index]
-        buf.bytesused = self._qbuf.bytesused
+        buf = camera.cap_bufs[qbuf.index]
+        buf.bytesused = qbuf.bytesused
         # buf.timestamp = qbuf.timestamp
 
         self.write_buf(buf)
 
-        ioctl(self._camera.fd, VIDIOC_QBUF, buf)
+        ioctl(camera_fd, VIDIOC_QBUF, buf)
 
     def write_buf(self, buf):
         """
@@ -116,14 +110,17 @@ class V4LCapturer(CameraCapturer):
         logging.debug('write_buf() called, buffer size = %d', buf.bytesused)
         ptr = (ctypes.c_uint8 * buf.bytesused).from_buffer(buf.buffer)
 
-        if self._camera.pixelformat == V4L2_PIX_FMT_MJPEG or self._camera.pixelformat == V4L2_PIX_FMT_JPEG:
-            tj_decompress(self._tj, ptr, buf.bytesused, self._outbuffer, self._camera.width,
-                          self._bytesperline, self._camera.height, TJPF_RGB, 0)
-            # Ignore decode errors, some cameras only send imperfect frames.
-            ptr = self._outbuffer
-
         img_byte_arr = io.BytesIO()
-        Image.frombytes('RGB', (self._camera.width, self._camera.height), ptr, 'raw').save(img_byte_arr, format='jpeg')
+
+        if self._camera.pixelformat == V4L2_PIX_FMT_MJPEG or self._camera.pixelformat == V4L2_PIX_FMT_JPEG:
+            img_byte_arr.write(ptr)
+            # tj_decompress(self._tj, ptr, buf.bytesused, self._outbuffer, self._camera.width,
+            #               self._bytesperline, self._camera.height, TJPF_RGB, 0)
+            # Ignore decode errors, some cameras only send imperfect frames.
+            # ptr = self._outbuffer
+        else:
+            Image.frombytes('RGB', (self._camera.width, self._camera.height), ptr, 'raw') \
+                .save(img_byte_arr, format='jpeg')
 
         self._image = img_byte_arr.getvalue()
 
