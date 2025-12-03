@@ -77,4 +77,5 @@ class CameraMotionController:
         return self._ctrls.get_ctrl_pages() if hierarchy else self._ptz.get_ctrls()
 
     def __del__(self):
-        self._ctrls.terminate_all()
+        pass
+        # self._ctrls.terminate_all()
