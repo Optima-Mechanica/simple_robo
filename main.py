@@ -99,16 +99,26 @@ async def controls_get():
 
 
 @app.post('/api/camera/ptz')
-async def camera_ptz(ptz_record: PTZRecord, background_tasks: BackgroundTasks):
+async def set_camera_ptz(ptz_record: PTZRecord, background_tasks: BackgroundTasks):
     # background_tasks.add_task(motion_controller.set_ptz, ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
-    motion_controller.set_ptz(ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
+    motion_controller.ptz = (ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
     return {'message': 'PTZ submitted successfully!', 'data': ptz_record.model_dump_json() }
 
 
+@app.get('/api/camera/ptz')
+async def get_camera_ptz():
+    return PTZRecord.from_tuple(motion_controller.ptz).model_dump_json()
+
+
 @app.post('/api/camera/focus')
-async def camera_focus(focus: Focus):
-    motion_controller.focus(focus.auto, focus.value)
+async def set_camera_focus(focus: Focus):
+    motion_controller.set_focus(focus.auto, focus.value)
     return {'message': 'Focus submitted successfully!', 'data': focus.model_dump_json() }
+
+
+@app.get('/api/camera/focus')
+async def get_camera_focus():
+    return Focus.from_tuple(motion_controller.focus).model_dump_json()
 
 
 @app.post('/api/camera/reset')

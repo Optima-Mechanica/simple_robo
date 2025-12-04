@@ -1,0 +1,173 @@
+/*
+ * CSS file for the robot control interface.
+ */
+
+body
+{
+    padding: 0;
+    margin: 0;
+}
+
+.joystick
+{
+	width: 150px;
+	height: 150px;
+	margin: 50px;
+	background-image: url('/static/images/joystick-base.png');
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+#controller
+{
+    background-image: url('/static/images/pip_bg.png');
+    background-repeat: no-repeat;
+    height: 100%;
+    width: 100%;
+    border: 0;
+    margin: 0;
+}
+
+.view
+{
+	/*border-radius: 25px;*/
+	opacity: 0.9;
+    outline: none;
+}
+
+#joystick_direction_div
+{
+    position: relative;
+    left: 320px;
+    top: 465px;
+}
+
+#joystick_camera_div
+{
+	position: relative;
+	left: 250px;
+	top: 465px;
+}
+
+#reset_div
+{
+	position: relative;
+	left: -140px;
+	top: -165px;
+}
+
+#zoom_div
+{
+	position: relative;
+	left: 925px;
+	top: -576px;
+}
+
+#focus_div
+{
+	position: relative;
+	left: 1050px;
+	top: -565px;
+
+	width: 40px;
+	height: 80px;
+
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+}
+
+#autofocus_switch
+{
+	position: relative;
+	left: 0px;
+	top: 15px;
+}
+
+#controls
+{
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	justify-content: space-between; /* Distributes space between items */
+}
+
+.column
+{
+	padding: 15px;
+	flex: 1; /* Allows the divs to grow and shrink to fill available space */
+	text-align: center;
+	justify-content: center; /* Горизонтальное выравнивание */
+	align-items: center;
+}
+
+.round-button
+{
+	width: 70px;
+	height: 65px;
+	position: relative;
+	left: -10px;
+	top: -3px;
+	border-radius: 50%;
+	background-color: #ff7b00;
+	color: white;
+	border: none;
+	font-size: 16px;
+	cursor: pointer;
+	display: flex; /* For centering content */
+	justify-content: center; /* For centering content */
+	align-items: center; /* For centering content */
+}
+
+.round-button:hover
+{
+	transform: translate3d(0, 1px, 1px);
+}
+
+.round-button:active
+{
+	transform: translate3d(0, 4px, 4px);
+}
+
+div:has(> div.view)
+{
+    position: relative;
+    overflow: hidden;
+    border-radius: 10% / 60%;
+    z-index: 3;
+    width: 695px;
+	height: 565px;
+    left: 250px;
+	top: 227px;
+}
+
+.view
+{
+    width: 100%;
+    height: 100%;
+    border-radius: 65% / 6%;
+    background: 0;
+	background-image: url(/video_feed);
+    background-repeat: no-repeat;
+    position: absolute;
+}
+
+.view::before
+{
+    content: " ";
+    position: absolute;
+    width: 100%;
+    height: 1%;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 60% / 6%;
+}
+
+.view::after
+{
+    content: " ";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(transparent 50%, rgba(0, 0, 0, 0.8)), linear-gradient(rgba(255, 255, 255, 0.4) 10%, transparent);
+    box-shadow: inset 0 5px 55px rgba(255, 255, 255, 0.2), inset 5px 0 15px rgba(255, 255, 255, 0.2), inset -5px 0 15px rgba(255, 255, 255, 0.1), 0 0 10px rgba(0,0,0,1), inset 0 20px 5px rgba(255, 255, 255, 0.05);
+    border-radius: 50% / 5%;
+}

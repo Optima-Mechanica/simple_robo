@@ -5,7 +5,18 @@ Data structures for interaction via REST API.
 from pydantic import BaseModel
 
 
-class PTZRecord(BaseModel):
+class ExtBaseModel(BaseModel):
+    """
+    Need to construct models from tuples.
+    """
+
+    @classmethod
+    def from_tuple(cls, data_tuple: tuple):
+        field_names = cls.model_fields.keys()
+        return cls(**dict(zip(field_names, data_tuple)))
+
+
+class PTZRecord(ExtBaseModel):
     """
     Record contains pan, tilt and zoom from the client.
     """
@@ -15,7 +26,7 @@ class PTZRecord(BaseModel):
     zoom: int
 
 
-class Focus(BaseModel):
+class Focus(ExtBaseModel):
     """
     Focus automatic flag and focus value.
     """
@@ -24,7 +35,7 @@ class Focus(BaseModel):
     value: int | None
 
 
-class Direction(BaseModel):
+class Direction(ExtBaseModel):
     """
     Geographic direction (N, E, W, SW, C, etc.) and coordinates.
     """

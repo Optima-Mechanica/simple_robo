@@ -1,166 +1,55 @@
 <html>
     <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=8; IE=7; IE=9; IE=10; IE=EDGE" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
         <title>Robot controller</title>
 
         <script type="text/javascript" src="/static/js/jquery-3.7.1.min.js"></script>
         <script type="text/javascript" src="/static/js/joystick/joy.js"></script>
         <script type="text/javascript" src="/static/js/input-knobs/input-knobs.js"></script>
-
-        <style>
-        .joystick
-        {
-            width: 150px;
-            height: 150px;
-            margin: 50px;
-            background-image: url('/static/images/joystick-base.png');
-            background-repeat: no-repeat;
-            background-position: center center;
-        }
-
-        #controller
-        {
-            background-image: url('/static/images/pip_bg.png');
-            background-repeat: no-repeat;
-            height: 100%;
-            width: 100%;
-            border: 0;
-            margin: 0;
-        }
-
-		.view
-		{
-			/*border-radius: 25px;*/
-			border-top-left-radius: 100% 35px;
-  			border-top-right-radius: 100% 35px;
-			border-bottom-left-radius: 100% 35px;
-  			border-bottom-right-radius: 100% 35px;
-			position: relative;
-            left: 280px;
-            top: 227px;
-            width: 635px;
-            height: 565px;
-			opacity: 0.9;
-			background-image: url(/video_feed);
-		}
-
-        #joystick_direction_div
-        {
-            position: relative;
-            left: 320px;
-            top: 465px;
-        }
-
-        #joystick_camera_div
-        {
-            position: relative;
-            left: 280px;
-            top: 465px;
-        }
-
-        #reset_div
-        {
-            position: relative;
-            left: -112px;
-            top: -162px;
-        }
-
-        #zoom_div
-        {
-            position: relative;
-            left: 970px;
-            top: -576px;
-        }
-
-        #focus_div
-        {
-            position: relative;
-            left: 1078px;
-            top: -568px;
-
-            width: 40px;
-            height: 80px;
-
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
-        }
-
-        #autofocus_switch
-        {
-            position: relative;
-            left: 0px;
-            top: 14px;
-        }
-
-        #controls
-        {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            justify-content: space-between; /* Distributes space between items */
-        }
-
-        .column
-        {
-            padding: 15px;
-            flex: 1; /* Allows the divs to grow and shrink to fill available space */
-            text-align: center;
-            justify-content: center; /* Горизонтальное выравнивание */
-            align-items: center;
-        }
-
-        .round-button
-        {
-            width: 70px;
-            height: 65px;
-			position: relative;
-			left: -10px;
-			top: -3px;
-            border-radius: 50%;
-            background-color: #ff7b00;
-            color: white;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex; /* For centering content */
-            justify-content: center; /* For centering content */
-            align-items: center; /* For centering content */
-        }
-
-        .round-button:hover
-        {
-            background-color: #ff0000; /* Example hover effect */
-            transform: translate3d(0 0.95 0.99);
-        }
-
-        .round-button:active
-        {
-            transform: translateY(0 0.9 0.9);
-        }
-        </style>
-
+        <script type="text/javascript" src="/static/js/webaudio-controls/webcomponents-lite.js"></script>
+        <script type="text/javascript" src="/static/js/webaudio-controls/webaudio-controls.js"></script>
+        <link rel="stylesheet" href="/static/styles/general_style.css">
     </head>
     <body>
-        <div id="controller">
-            <div class="view" id="video">
+        <div id="controller" style="display: none;">
+            <div id="hv">
+                <div class="view" id="video">
+                </div>
             </div>
 
             <div id="controls">
                 <div class="column">
                     <div id="joystick_direction_div" class="joystick"></div>
+                    <img id="joy_direction_image"
+                        src="/static/images/joystick-red.png"
+                        style="display: none"
+                    />
                 </div>
                 <div class="column">
                     <div id="joystick_camera_div" class="joystick"></div>
+                    <img id="joy_camera_image"
+                        src="/static/images/joystick-green.png"
+                        style="display: none"
+                    />
+
                     <div id="zoom_div">
-                        <input id="zoom" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/>
+                        <webaudio-knob id="zoom" src="/static/js/webaudio-controls/knobs/LittlePhatty.png" min="0" max="100" tooltip="Увеличение камеры">
+                        </webaudio-knob>
+                        <!-- <input id="zoom" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/> -->
                     </div>
                     <div id="focus_div">
-                        <input id="focus" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/>
-                        <input checked="true" caption="Автофокус" id="autofocus_switch" type="checkbox" class="input-switch"
-						 data-src="/static/js/input-knobs/images/switch_offon.png" data-diameter="50"/>
+                        <webaudio-knob id="focus" src="/static/js/webaudio-controls/knobs/LittlePhatty.png" min="0" max="100" tooltip="Фокус камеры">
+                        </webaudio-knob>
+                        <!-- <input id="focus" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/> -->
+                        <!-- <input checked="true" caption="Автофокус" id="autofocus_switch" type="checkbox" class="input-switch"
+                         data-src="/static/js/input-knobs/images/switch_offon.png" data-diameter="50"/> -->
+                        <webaudio-switch id="autofocus_switch" class="input-switch" src="/static/js/webaudio-controls/knobs/switch_toggle.png" type="toggle" width="64" height="64" invert="1" value="1" tooltip="Переключить автофокус">
                     </div>
                     <div id="reset_div">
                         <img id="reset" class="round-button" src="/static/images/reset_pip.png" alt="Reset">
-                    </div>
                     </div>
                     <div>
                     </div>
@@ -168,10 +57,16 @@
             </div>
         </div>
 
-
         <script type="text/javascript">
+            // Totally stop back sync from the server.
+            let stop_sync = true;
+
+            // Skip one cycle.
+            let skip_sync = true;
+
             function send_position()
             {
+                stop_sync = true;
                 console.log("send_position()")
 
                 direction= {
@@ -194,17 +89,26 @@
                     {
                         console.error("Error:", status, error);
                     }
+                }).done(function()
+                {
+                    skip_sync = true;
+                    stop_sync = false;
                 });
             }
 
             function send_ptz()
             {
+                stop_sync = true;
                 console.log("send_ptz()")
+                const jw = $("#joystick_camera_div").width();
+                const jh = $("#joystick_camera_div").height();
+                const pan_scaler = ($("#joystick_camera_div").prop("pan_max") - $("#joystick_camera_div").prop("pan_min")) / (20000 * jw);
+                const tilt_scaler = ($("#joystick_camera_div").prop("tilt_max") - $("#joystick_camera_div").prop("tilt_min")) / (20000 * jh);
 
                 ptz_record = {
-                    "pan": Math.floor(Number(joystick_camera.GetX()) / 20),
-                    "tilt": Math.floor(Number(joystick_camera.GetY()) / 20),
-                    "zoom": Number($("#zoom").val())
+                    "pan": Math.floor(pan_scaler * joystick_camera.GetX()),
+                    "tilt": Math.floor(tilt_scaler * joystick_camera.GetY()),
+                    "zoom": Number($("#zoom").prop("value"))
                 };
 
                 console.log(ptz_record);
@@ -221,24 +125,30 @@
                     {
                         console.error("Error:", status, error);
                     }
+                }).done(function()
+                {
+                    skip_sync = true;
+                    stop_sync = false;
                 });
+
             }
 
             function send_focus()
             {
+                stop_sync = true;
                 console.log("send_focus()")
 
                 focus = {
-                    "auto": Boolean($("#autofocus_switch").is(":checked")),
+                    "auto": Boolean($("#autofocus_switch").prop("value")),
                     "value": Number($("#focus").val())
                 };
 
                 console.log(focus);
                 $.ajax("/api/camera/focus",
                 {
-                    type : 'POST',
-                    data : JSON.stringify(focus),
-                    contentType : 'application/json',
+                    type: 'POST',
+                    data: JSON.stringify(focus),
+                    contentType: 'application/json',
                     success: function(response)
                     {
                         console.log("Success:", response);
@@ -247,32 +157,111 @@
                     {
                         console.error("Error:", status, error);
                     }
+                }).done(function()
+                {
+                    skip_sync = true;
+                    stop_sync = false;
                 });
             }
-            // Create JoyStick object into the DIV 'joy1Div'
-            //var Joy1 = new JoyStick('joy1Div');
 
-            // Create JoyStick object into the DIV 'joy2Div'
+            function set_zoom(value)
+            {
+                $('#zoom').prop("value", value);
+                send_ptz();
+            }
+
+            function set_focus_knob_enabled()
+            {
+                $("#focus").prop("enable", 0 === $("#autofocus_switch").prop("value"));
+            }
+
+            function get_server_values()
+            {
+                stop_sync = true;
+                $.getJSON("/api/camera/controls", function(result)
+                {
+                    zoom_param = result["data"].zoom_absolute;
+                    focus_param = result["data"].focus_absolute;
+
+                    $("#focus").prop("min", focus_param.min);
+                    $("#focus").prop("max", focus_param.max);
+                    console.log("Zoom = " + zoom_param.min + ", " + zoom_param.max);
+                    $("#zoom").prop("min", zoom_param.min);
+                    $("#zoom").prop("max", zoom_param.max);
+
+                    pan_param = result["data"].pan_absolute;
+                    $("#joystick_camera_div").prop("pan_min", pan_param.min);
+                    $("#joystick_camera_div").prop("pan_max", pan_param.max);
+
+                    tilt_param = result["data"].tilt_absolute;
+                    $("#joystick_camera_div").prop("tilt_min", tilt_param.min);
+                    $("#joystick_camera_div").prop("tilt_max", tilt_param.max);
+                });
+
+                $.getJSON("/api/camera/ptz", function(result)
+                {
+                    result = JSON.parse(result);
+                    $('#zoom').val(result["zoom"]);
+                });
+
+                $.getJSON("/api/camera/focus", function(result)
+                {
+                    result = JSON.parse(result);
+                    $("#autofocus_switch").prop("value", result["auto"])
+                    $('#focus').val(result["value"]);
+                }).done(function()
+                {
+                    stop_sync = false;
+                });
+
+            }
+
+            get_server_values();
+
+            $("#controller").show();
+
             var joystick_direction = new JoyStick("joystick_direction_div",
                 { "title": "joy_direction", "autoReturnToCenter": true,
-				  "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d"
-				}, send_position);
+                  "image": "joy_direction_image",
+                  "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d"
+                }, send_position);
 
+            console.log($("joy_direction"));
+            // c2933d
             var joystick_camera = new JoyStick("joystick_camera_div",
                 { "title": "joy_camera", "autoReturnToCenter": true,
-				  "internalFillColor": "#c2933d", "internalStrokeColor": "#353a4a","externalStrokeColor": "#83928d" },
+                  "image": "joy_camera_image",
+                  "internalFillColor": "#303c2f", "internalStrokeColor": "#353a4a","externalStrokeColor": "#83928d" },
                   send_ptz);
+
+            $("#video").on("mousewheel", function(event)
+            {
+                stop_sync = true;
+                console.log("Delta = " + event.originalEvent.wheelDeltaY);
+                zoom_knob = $('#zoom');
+                scale = (zoom_knob.prop("max") - zoom_knob.prop("min")) / $('#video').height();
+                scale /= 5;
+
+                console.log("Zoom = " + zoom_knob.prop("min") + ", " + zoom_knob.prop("max") + ", scale = " + scale);
+                zoom_value = Math.floor(zoom_knob.val() + scale * event.originalEvent.wheelDeltaY);
+                console.log('Zoom value = ' + event.originalEvent.wheelDeltaY) + ", " + zoom_value;
+                set_zoom(zoom_value);
+                event.preventDefault();
+            });
 
             $("#controls").width($("#video").width())
             $("#autofocus_switch").on("change", function()
             {
-                $("#focus").prop("disabled", $("#autofocus_switch").is(":checked"));
+                set_focus_knob_enabled();
                 send_focus();
             });
+
+            set_focus_knob_enabled();
 
             $("#autofocus_switch").click();
             $("#zoom").on("change", send_ptz);
             $("#focus").on("change", send_focus);
+
             $("#reset").on("click", function()
             {
                 console.log("reset()");
@@ -293,7 +282,27 @@
                 });
             });
 
+            function interval_cb()
+            {
+                if (stop_sync)
+                {
+                    return;
+                }
+                if (skip_sync)
+                {
+                    skip_sync = false;
+                    return;
+                }
+                // get_server_values();
+            }
 
+            // var interval = setInterval(interval_cb, 300);
+            //const image = document.getElementById("joy_direction_image");
+
+            //image.addEventListener("load", (e) => {
+            //    $("#joy_direction").drawImage(image, 0, 0);
+            //});
         </script>
+
     </body>
 </html>
