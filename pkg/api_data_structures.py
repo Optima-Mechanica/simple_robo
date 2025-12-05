@@ -2,7 +2,9 @@
 Data structures for interaction via REST API.
 """
 
-from pydantic import BaseModel
+from datetime import datetime
+from pydantic import BaseModel, Field, computed_field
+from uuid import UUID, uuid4
 
 
 class ExtBaseModel(BaseModel):
@@ -43,3 +45,26 @@ class Direction(ExtBaseModel):
     direction: str
     x: int | None
     y: int | None
+
+
+class ServerEventData(BaseModel):
+    @computed_field
+    @property
+    def event_type(self) -> str:
+        return str(self.payload.__class__.__name__)
+
+    timestamp: datetime = Field(default=datetime.now())
+    payload: PTZRecord | Focus | Direction | str | None
+
+
+class ServerEvent(ExtBaseModel):
+    """
+    Server event structure.
+
+    @warning: field names are fixed!
+    """
+
+    event: str = Field(default='state_changed', freeze=True)
+
+    id: UUID = Field(default_factory=uuid4)
+    data: ServerEventData

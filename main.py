@@ -8,6 +8,8 @@ from contextlib import asynccontextmanager
 import uvicorn
 import logging
 from fastapi.templating import Jinja2Templates
+from sse_starlette.sse import EventSourceResponse
+import json
 
 import os
 from pathlib import Path
@@ -24,7 +26,7 @@ from pkg.capturers.v4l_cameractrls import V4LCapturer as CameraCapturer
 #from pkg.capturers.ffmpeg import FFMPEGCapturer as CameraCapturer
 
 from pkg.camera_motion_controller import CameraMotionController
-from pkg.api_data_structures import PTZRecord, Focus, Direction
+from pkg.api_data_structures import PTZRecord, Focus, Direction, ServerEvent, ServerEventData
 from pkg.frame_generator import FrameGenerator
 
 
@@ -32,6 +34,7 @@ capturer = CameraCapturer(4)
 frame_generator = FrameGenerator(capturer)
 templates = Jinja2Templates(directory=(STATIC_DIR / 'templates'))
 motion_controller = CameraMotionController(4)
+message_queue: asyncio.Queue[ServerEvent] = asyncio.Queue()
 
 app = FastAPI()
 app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
@@ -53,7 +56,19 @@ async def lifespan(app: FastAPI):
         capturer.stop_capturing()
         logging.info('Camera resource released.')
 
+
 app.router.lifespan_context = lifespan
+
+
+async def ev_gen(request: Request):
+    while not await request.is_disconnected():
+        message = await message_queue.get()
+        prepared_message = json.loads(message.model_dump_json())
+        prepared_message['data'] = json.dumps(prepared_message['data'])
+        logging.debug('Server event: %s', prepared_message)
+
+        yield prepared_message
+
 
 @app.get('/video_feed')
 async def video_feed() -> StreamingResponse:
@@ -71,7 +86,7 @@ async def video_feed() -> StreamingResponse:
 @app.get('/')
 def entrypoint(request: Request):
     logging.debug('Requested /')
-    return templates.TemplateResponse('index.html', {'request': request, 'name': 'World'})
+    return templates.TemplateResponse('index.html', {'request': request})
 
 
 @app.post('/api/motion/direction')
@@ -102,6 +117,7 @@ async def controls_get():
 async def set_camera_ptz(ptz_record: PTZRecord, background_tasks: BackgroundTasks):
     # background_tasks.add_task(motion_controller.set_ptz, ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
     motion_controller.ptz = (ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
+    await message_queue.put(ServerEvent(data=ServerEventData(payload=ptz_record)))
     return {'message': 'PTZ submitted successfully!', 'data': ptz_record.model_dump_json() }
 
 
@@ -113,6 +129,7 @@ async def get_camera_ptz():
 @app.post('/api/camera/focus')
 async def set_camera_focus(focus: Focus):
     motion_controller.set_focus(focus.auto, focus.value)
+    await message_queue.put(ServerEvent(data=ServerEventData(payload=focus)))
     return {'message': 'Focus submitted successfully!', 'data': focus.model_dump_json() }
 
 
@@ -124,11 +141,18 @@ async def get_camera_focus():
 @app.post('/api/camera/reset')
 async def camera_reset():
     errors = motion_controller.reset()
+    await message_queue.put(ServerEvent(data=ServerEventData(payload='reset')))
     return {'message': 'Camera was reset successfully!' }
 
 #@app.get('/{path:path}')
 #async def html_landing():
 #    return Response(prebuilt_html(title='FastUI Button Example'))
+
+
+@app.get('/event_stream')
+async def event_stream(request: Request):
+    # return StreamingResponse(ev_gen(request), media_type='text/event-stream')
+    return EventSourceResponse(ev_gen(request))
 
 
 async def main(host: str = '0.0.0.0', port: int = 8000):

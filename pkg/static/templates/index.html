@@ -61,6 +61,18 @@
         <script type="text/javascript">
         (async () =>
         {
+            var stop_send = false;
+
+            function set_autofocus(enabled)
+            {
+                $("#autofocus_switch").prop("value", enabled);
+            }
+
+            function set_focus_value(value)
+            {
+                $('#focus').val(value);
+            }
+
             async function get_server_values()
             {
                 result = await api_get_controls();
@@ -77,8 +89,8 @@
 
                 focus = await api_get_focus();
                 console.log('Focus', focus);
-                $("#autofocus_switch").prop("value", focus["auto"]);
-                $('#focus').val(focus["value"]);
+                set_autofocus(focus["auto"]);
+                set_focus_value(focus["value"]);
 
                 return {
                     pan_min: pan_param.min,
@@ -95,13 +107,14 @@
                 $("#focus").prop("enable", !Boolean($("#autofocus_switch").prop("value")));
             }
 
-            function set_zoom(value, zoom_min, zoom_max)
+            function set_zoom(value, zoom_min = ptz_limits.zoom_min, zoom_max = ptz_limits.zoom_max)
             {
                 value = Math.min(Math.max(value, zoom_min), zoom_max);
                 $('#zoom').prop("value", value);
-                api_send_ptz(0, 0, Number($("#zoom").prop("value")));
+                if (!stop_send) api_send_ptz(0, 0, Number($("#zoom").prop("value")));
             }
 
+            const event_source = new EventSource('/event_stream');
             const ptz_limits = await get_server_values();
             console.log(ptz_limits);
 
@@ -120,7 +133,7 @@
                 { "title": "joy_direction", "autoReturnToCenter": true,
                   "image": "joy_direction_image",
                   "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d"
-                }, () => api_send_direction(joystick_direction.GetDir(), joystick_direction.GetX(), joystick_direction.GetY()));
+                }, () => { if (!stop_send) api_send_direction(joystick_direction.GetDir(), joystick_direction.GetX(), joystick_direction.GetY()) });
 
             // c2933d
             var joystick_camera = new JoyStick("joystick_camera_div",
@@ -128,10 +141,11 @@
                   "image": "joy_camera_image",
                   "internalFillColor": "#303c2f", "internalStrokeColor": "#353a4a","externalStrokeColor": "#83928d" },
                   () =>
-                      api_send_ptz(Math.floor(pan_scaler * joystick_camera.GetX()),
-                                   Math.floor(tilt_scaler * joystick_camera.GetY()),
-                                   Number($("#zoom").prop("value")))
-                  );
+                  {
+                      if (!stop_send) api_send_ptz(Math.floor(pan_scaler * joystick_camera.GetX()),
+                                                   Math.floor(tilt_scaler * joystick_camera.GetY()),
+                                                   Number($("#zoom").prop("value")))
+                  });
 
             $("#video").on("mousewheel", function(event)
             {
@@ -143,7 +157,7 @@
                 console.log("Zoom = " + zoom_knob.prop("min") + ", " + zoom_knob.prop("max") + ", scale = " + scale);
                 zoom_value = Math.round(Number(zoom_knob.val()) + scale * event.originalEvent.wheelDeltaY);
                 console.log('Zoom value = ' + event.originalEvent.wheelDeltaY + ", " + zoom_value);
-                set_zoom(zoom_value, ptz_limits.zoom_min, ptz_limits.zoom_max);
+                set_zoom(zoom_value);
                 event.preventDefault();
             });
 
@@ -151,7 +165,7 @@
             $("#autofocus_switch").on("change", async () =>
             {
                 set_focus_knob_enabled();
-                await api_send_focus(Boolean($("#autofocus_switch").prop("value")), Number($("#focus").val()));
+                if (!stop_send) await api_send_focus(Boolean($("#autofocus_switch").prop("value")), Number($("#focus").val()));
             });
 
             set_focus_knob_enabled();
@@ -163,29 +177,28 @@
             $("#reset").on("click", async () =>
             {
                 $("#zoom").val(0);
-                await api_reset();
+                if (!stop_send) await api_reset();
             });
 
-            function interval_cb()
+            event_source.addEventListener("state_changed", event =>
             {
-                if (stop_sync)
+                message = JSON.parse(event.data)
+                console.log('Event: ' + message);
+                stop_send = true;
+                switch (message.event_type)
                 {
-                    return;
+                    case "PTZRecord":
+                        set_zoom(message.payload.zoom);
+                    break;
+                    case 'Focus':
+                        set_autofocus(message.payload.auto);
+                        set_focus_value(message.payload.value);
+                    break;
+                    case 'Reset':
+                    break;
                 }
-                if (skip_sync)
-                {
-                    skip_sync = false;
-                    return;
-                }
-                // get_server_values();
-            }
-
-            // var interval = setInterval(interval_cb, 300);
-            //const image = document.getElementById("joy_direction_image");
-
-            //image.addEventListener("load", (e) => {
-            //    $("#joy_direction").drawImage(image, 0, 0);
-            //});
+                stop_send = false;
+            });
         })();
         </script>
 
