@@ -62,7 +62,6 @@ async function api_send_ptz(pan, tilt, zoom)
 
 async function api_send_focus(auto_focus, focus_value)
 {
-    stop_sync = true;
     console.log("api_send_focus()")
 
     focus = {
