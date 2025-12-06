@@ -10,12 +10,12 @@ body
 
 .joystick
 {
-	width: 150px;
-	height: 150px;
-	margin: 50px;
-	background-image: url('/static/images/joystick-base.png');
-	background-repeat: no-repeat;
-	background-position: center center;
+    width: 150px;
+    height: 150px;
+    margin: 50px;
+    background-image: url('/static/images/joystick-base.png');
+    background-repeat: no-repeat;
+    background-position: center center;
 }
 
 #controller
@@ -30,8 +30,8 @@ body
 
 .view
 {
-	/*border-radius: 25px;*/
-	opacity: 0.9;
+    /*border-radius: 25px;*/
+    opacity: 0.9;
     outline: none;
 }
 
@@ -44,88 +44,88 @@ body
 
 #joystick_camera_div
 {
-	position: relative;
-	left: 250px;
-	top: 465px;
+    position: relative;
+    left: 250px;
+    top: 465px;
 }
 
 #reset_div
 {
-	position: relative;
-	left: -140px;
-	top: -165px;
+    position: relative;
+    left: -140px;
+    top: -165px;
 }
 
 #zoom_div
 {
-	position: relative;
-	left: 925px;
-	top: -576px;
+    position: relative;
+    left: 925px;
+    top: -576px;
 }
 
 #focus_div
 {
-	position: relative;
-	left: 1050px;
-	top: -565px;
+    position: relative;
+    left: 1050px;
+    top: -565px;
 
-	width: 40px;
-	height: 80px;
+    width: 40px;
+    height: 80px;
 
-	display: table-cell;
-	vertical-align: middle;
-	text-align: center;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
 }
 
 #autofocus_switch
 {
-	position: relative;
-	left: 0px;
-	top: 15px;
+    position: relative;
+    left: 0px;
+    top: 15px;
 }
 
 #controls
 {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	justify-content: space-between; /* Distributes space between items */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    justify-content: space-between; /* Distributes space between items */
 }
 
 .column
 {
-	padding: 15px;
-	flex: 1; /* Allows the divs to grow and shrink to fill available space */
-	text-align: center;
-	justify-content: center; /* Горизонтальное выравнивание */
-	align-items: center;
+    padding: 15px;
+    flex: 1; /* Allows the divs to grow and shrink to fill available space */
+    text-align: center;
+    justify-content: center; /* Горизонтальное выравнивание */
+    align-items: center;
 }
 
 .round-button
 {
-	width: 70px;
-	height: 65px;
-	position: relative;
-	left: -10px;
-	top: -3px;
-	border-radius: 50%;
-	background-color: #ff7b00;
-	color: white;
-	border: none;
-	font-size: 16px;
-	cursor: pointer;
-	display: flex; /* For centering content */
-	justify-content: center; /* For centering content */
-	align-items: center; /* For centering content */
+    width: 70px;
+    height: 65px;
+    position: relative;
+    left: -10px;
+    top: -3px;
+    border-radius: 50%;
+    background-color: #ff7b00;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; /* For centering content */
+    justify-content: center; /* For centering content */
+    align-items: center; /* For centering content */
 }
 
 .round-button:hover
 {
-	transform: translate3d(0, 1px, 1px);
+    transform: translate3d(0, 1px, 1px);
 }
 
 .round-button:active
 {
-	transform: translate3d(0, 4px, 4px);
+    transform: translate3d(0, 4px, 4px);
 }
 
 div:has(> div.view)
@@ -135,9 +135,9 @@ div:has(> div.view)
     border-radius: 10% / 60%;
     z-index: 3;
     width: 695px;
-	height: 565px;
+    height: 565px;
     left: 250px;
-	top: 227px;
+    top: 227px;
 }
 
 .view
@@ -146,7 +146,7 @@ div:has(> div.view)
     height: 100%;
     border-radius: 65% / 6%;
     background: 0;
-	background-image: url(/video_feed);
+    background-image: url(/video_feed);
     background-repeat: no-repeat;
     position: absolute;
 }
