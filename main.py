@@ -11,7 +11,6 @@ from fastapi.templating import Jinja2Templates
 from sse_starlette.sse import EventSourceResponse
 import json
 
-import os
 from pathlib import Path
 import sys
 

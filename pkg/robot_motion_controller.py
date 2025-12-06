@@ -1,6 +1,30 @@
 from enum import IntEnum
-import wiringpi as wpi
-from wiringpi import GPIO
+import logging
+
+try:
+    import wiringpi as wpi
+    from wiringpi import GPIO
+except ModuleNotFoundError:
+    logging.warning('WiringPi module can\'t be imported! Probably it\'s a testing environment?')
+
+    class GPIO(IntEnum):
+        OUTPUT = 0
+        INPUT = 1
+
+    class wpi:
+        _msg = 'WiringPi stub: module was not imported!'
+
+        @classmethod
+        def wiringPiSetup(cls):
+            logging.warning(cls._msg)
+
+        @classmethod
+        def pinMode(cls, a, b):
+            logging.warning(cls._msg)
+
+        @classmethod
+        def digitalWrite(cls, a, b):
+            logging.warning(cls._msg)
 
 
 class Direction(IntEnum):
