@@ -47,11 +47,11 @@ class CaterpillarController:
 
     def stop_caterpillars(self, sides: [Side]):
         for side in sides:
-            for pin in self._motion_table[side]: 
+            for pin in self._motion_table[side]:
                 wpi.digitalWrite(pin, 0)
 
 
-class MotionController:
+class RobotMotionController:
     """
     Robot motion controller.
     """

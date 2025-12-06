@@ -26,7 +26,7 @@ from pkg.capturers.v4l_cameractrls import V4LCapturer as CameraCapturer
 #from pkg.capturers.ffmpeg import FFMPEGCapturer as CameraCapturer
 
 from pkg.camera_motion_controller import CameraMotionController
-from pkg.motion_controller import MotionController, Direction as RobotDirection, Side
+from pkg.robot_motion_controller import RobotMotionController, Direction as RobotDirection, Side
 from pkg.api_data_structures import PTZRecord, Focus, Direction, ServerEvent, ServerEventData
 from pkg.frame_generator import FrameGenerator
 
@@ -35,7 +35,7 @@ capturer = CameraCapturer(0)
 frame_generator = FrameGenerator(capturer)
 templates = Jinja2Templates(directory=(STATIC_DIR / 'templates'))
 camera_motion_controller = CameraMotionController(0)
-robot_motion_controller = MotionController()
+robot_motion_controller = RobotMotionController()
 message_queue: asyncio.Queue[ServerEvent] = asyncio.Queue()
 
 app = FastAPI()
@@ -178,4 +178,3 @@ if '__main__' == __name__:
         asyncio.run(main())
     except KeyboardInterrupt:
         print('Server stopped by user.')
-
