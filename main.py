@@ -30,10 +30,10 @@ from pkg.api_data_structures import PTZRecord, Focus, Direction, ServerEvent, Se
 from pkg.frame_generator import FrameGenerator
 
 
-capturer = CameraCapturer(4)
+capturer = CameraCapturer(0)
 frame_generator = FrameGenerator(capturer)
 templates = Jinja2Templates(directory=(STATIC_DIR / 'templates'))
-motion_controller = CameraMotionController(4)
+motion_controller = CameraMotionController(0)
 message_queue: asyncio.Queue[ServerEvent] = asyncio.Queue()
 
 app = FastAPI()
