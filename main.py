@@ -26,6 +26,7 @@ from pkg.capturers.v4l_cameractrls import V4LCapturer as CameraCapturer
 #from pkg.capturers.ffmpeg import FFMPEGCapturer as CameraCapturer
 
 from pkg.camera_motion_controller import CameraMotionController
+from pkg.motion_controller import MotionController, Direction as RobotDirection, Side
 from pkg.api_data_structures import PTZRecord, Focus, Direction, ServerEvent, ServerEventData
 from pkg.frame_generator import FrameGenerator
 
@@ -33,7 +34,8 @@ from pkg.frame_generator import FrameGenerator
 capturer = CameraCapturer(0)
 frame_generator = FrameGenerator(capturer)
 templates = Jinja2Templates(directory=(STATIC_DIR / 'templates'))
-motion_controller = CameraMotionController(0)
+camera_motion_controller = CameraMotionController(0)
+robot_motion_controller = MotionController()
 message_queue: asyncio.Queue[ServerEvent] = asyncio.Queue()
 
 app = FastAPI()
@@ -95,52 +97,56 @@ async def direction_set(direction: Direction):
     # loop.call_later(2, lambda: asyncio.create_task(my_callback_function("Hello from the timer!")))
 
     geo_direction = {
-        'N': 'RfLf',
-        'S': 'RbLb',
-        'E': 'RbLf',
-        'W': 'RfLb',
-        'NE': 'Lf',
-        'NW': 'Rf',
-        'SE': 'Lb',
-        'SW': 'Rb',
-        'C': ''
+        'N': lambda: robot_motion_controller.shift(RobotDirection.FORWARD),
+        'S': lambda: robot_motion_controller.shift(RobotDirection.BACK),
+        'E': lambda: robot_motion_controller.rotate(Side.RIGHT),
+        'W': lambda: robot_motion_controller.rotate(Side.LEFT),
+        'NE': None, # 'Lf',
+        'NW': None, # 'Rf',
+        'SE': None, # 'Lb',
+        'SW': None, # 'Rb',
+        'C': robot_motion_controller.stop
     }
+
+    if (m_dir := geo_direction.get(direction.direction)) is not None:
+        m_dir()
+
     return {'message': 'Direction submitted successfully!', 'data': direction.model_dump_json() }
 
 
 @app.get('/api/camera/controls')
 async def controls_get():
-    return { 'data': motion_controller.get_controls()  }
+    return { 'data': camera_motion_controller.get_controls()  }
 
 
 @app.post('/api/camera/ptz')
 async def set_camera_ptz(ptz_record: PTZRecord, background_tasks: BackgroundTasks):
-    # background_tasks.add_task(motion_controller.set_ptz, ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
-    motion_controller.ptz = (ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
+    # background_tasks.add_task(camera_motion_controller.set_ptz, ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
+    camera_motion_controller.ptz = (ptz_record.pan, ptz_record.tilt, ptz_record.zoom)
     await message_queue.put(ServerEvent(data=ServerEventData(payload=ptz_record)))
     return {'message': 'PTZ submitted successfully!', 'data': ptz_record.model_dump_json() }
 
 
 @app.get('/api/camera/ptz')
 async def get_camera_ptz():
-    return PTZRecord.from_tuple(motion_controller.ptz).model_dump_json()
+    return PTZRecord.from_tuple(camera_motion_controller.ptz).model_dump_json()
 
 
 @app.post('/api/camera/focus')
 async def set_camera_focus(focus: Focus):
-    motion_controller.set_focus(focus.auto, focus.value)
+    camera_motion_controller.set_focus(focus.auto, focus.value)
     await message_queue.put(ServerEvent(data=ServerEventData(payload=focus)))
     return {'message': 'Focus submitted successfully!', 'data': focus.model_dump_json() }
 
 
 @app.get('/api/camera/focus')
 async def get_camera_focus():
-    return Focus.from_tuple(motion_controller.focus).model_dump_json()
+    return Focus.from_tuple(camera_motion_controller.focus).model_dump_json()
 
 
 @app.post('/api/camera/reset')
 async def camera_reset():
-    errors = motion_controller.reset()
+    errors = camera_motion_controller.reset()
     await message_queue.put(ServerEvent(data=ServerEventData(payload='reset')))
     return {'message': 'Camera was reset successfully!' }
 

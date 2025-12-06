@@ -2,3 +2,5 @@ fastapi
 sse-starlette
 uvicorn
 jinja
+pydantic==2.12.5
+pydantic_core==2.41.5
