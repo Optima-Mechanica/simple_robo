@@ -15,46 +15,103 @@
         <link rel="stylesheet" href="/static/styles/general_style.css">
     </head>
     <body>
-        <div id="controller" style="display: none;">
-            <div id="hv">
-                <div class="view" id="video">
+        <div class="pip">
+            <div class="pipfront">
+                <div class="top">
+                  <div class="top-panel"></div>
+                </div>
+                <div class="top-button"></div>
+                <div class="screw1"></div><div class="screw2"></div>
+                <div class="screen-border">
+                    <div class="screen">
+                        <div id="hv">
+                            <div class="view" id="video"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="screw3"></div>
+                <div class="reset" id="reset"></div>
+                <div class="screw4"></div>
+                <div class="screw5"></div>
+            </div>
+            <div class="left-wheel">
+                <div class="left-wheel-shadow"></div>
+                <div class="left-wheel-shadow"></div>
+                <div class="left-wheel-shadow"></div>
+                <div class="left-wheel-shadow"></div>
+            </div>
+            <div class="wheel">
+                <div class="wheel-shadow"></div>
+                <div class="wheel-shadow"></div>
+                <div class="wheel-shadow"></div>
+                <div class="wheel-shadow"></div>
+                <div class="wheel-shadow"></div>
+                <div class="wheel-plug"></div>
+                <div class="wheel-wire"></div>
+            </div>
+            <div class="rads">
+                <div class="rads-meter">
+                    <div class="rads-value"></div>
+                    <div class="bump1"></div>
+                    <div class="bump2"></div>
                 </div>
             </div>
-
-            <div id="controls">
+            <div class="speakers">
+                <div class="speaker"></div>
+                <div class="speaker"></div>
+                <div class="speaker"></div>
+                <div class="speaker"></div>
+            </div>
+            <div class="bump3"></div>
+            <div class="bump4"></div>
+            <div class="tune-meter"></div>
+            <div class="tune-wheel">
+                <div class="analog"></div>
+            </div>
+            <div class="bottom">
                 <div class="column">
                     <div id="joystick_direction_div" class="joystick"></div>
-                    <img id="joy_direction_image"
-                        src="/static/images/joystick-red.png"
-                        style="display: none"
-                    />
+                    <img id="joy_direction_image" src="/static/images/joystick-red.png"
+                     style="display: none"/>
                 </div>
                 <div class="column">
                     <div id="joystick_camera_div" class="joystick"></div>
                     <img id="joy_camera_image"
-                        src="/static/images/joystick-green.png"
-                        style="display: none"
-                    />
-
-                    <div id="zoom_div">
-                        <webaudio-knob id="zoom" src="/static/js/webaudio-controls/knobs/LittlePhatty.png" min="0" max="100" tooltip="Увеличение камеры">
-                        </webaudio-knob>
-                        <!-- <input id="zoom" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/> -->
+                     src="/static/images/joystick-green.png"
+                     style="display: none"/>
+                </div>
+                <div class="bottom-clips">
+                    <div class="bottom-clip">
+                        <span></span>
                     </div>
-                    <div id="focus_div">
-                        <webaudio-knob id="focus" src="/static/js/webaudio-controls/knobs/LittlePhatty.png" min="0" max="100" tooltip="Фокус камеры">
-                        </webaudio-knob>
-                        <!-- <input id="focus" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/> -->
-                        <!-- <input checked="true" caption="Автофокус" id="autofocus_switch" type="checkbox" class="input-switch"
-                         data-src="/static/js/input-knobs/images/switch_offon.png" data-diameter="50"/> -->
-                        <webaudio-switch id="autofocus_switch" class="input-switch" src="/static/js/webaudio-controls/knobs/switch_toggle.png" type="toggle" width="64" height="64" invert="1" value="1" tooltip="Переключить автофокус">
+                    <div class="bottom-clip">
+                        <span></span>
                     </div>
-                    <div id="reset_div">
-                        <img id="reset" class="round-button" src="/static/images/reset_pip.png" alt="Reset">
+                    <div class="bottom-clip">
+                        <span></span>
                     </div>
-                    <div>
+                    <div class="bottom-clip">
+                        <span></span>
                     </div>
                 </div>
+                <div class="bottom-switch"></div><div class="bump5"></div><div class="bump6"></div>
+            </div>
+            <div class="roulette"></div>
+            <div class="top-right"></div>
+            <div class="spike-wheel"></div>
+            <div id="zoom_div">
+                <webaudio-knob id="zoom"
+                    src="/static/js/webaudio-controls/knobs/LittlePhatty.png" min="0" max="100" tooltip="Увеличение камеры">
+                </webaudio-knob>
+            </div>
+            <div id="focus_div">
+                <webaudio-knob id="focus"
+                    src="/static/js/webaudio-controls/knobs/LittlePhatty.png" min="0" max="100" tooltip="Фокус камеры">
+                </webaudio-knob>
+                <webaudio-switch id="autofocus_switch" class="input-switch"
+                                 src="/static/js/webaudio-controls/knobs/switch_toggle.png" type="toggle"
+                                 width="64" height="64" invert="1" value="1" tooltip="Переключить автофокус"/>
             </div>
         </div>
 
@@ -78,10 +135,20 @@
                 result = await api_get_controls();
                 console.log('Controls', result)
 
-                focus_param = result["data"].focus_absolute;
+                focus_constraints = result["data"].focus_absolute;
 
-                $("#focus").prop("min", focus_param.min);
-                $("#focus").prop("max", focus_param.max);
+				if (focus_constraints !== undefined)
+                {
+				    $("#focus").prop("min", focus_constraints.min);
+                    $("#focus").prop("max", focus_constraints.max);
+                    $("#focus").prop("disabled", false);
+                    $("#autofocus_switch").prop("disabled", false);
+                }
+                else
+                {
+                    $("#focus").prop("disabled", true);
+                    $("#autofocus_switch").prop("disabled", true);
+                }
 
                 pan_param = result["data"].pan_absolute;
                 tilt_param = result["data"].tilt_absolute;
@@ -89,16 +156,17 @@
 
                 focus = await api_get_focus();
                 console.log('Focus', focus);
+
                 set_autofocus(focus["auto"]);
                 set_focus_value(focus["value"]);
 
                 return {
-                    pan_min: pan_param.min,
-                    pan_max: pan_param.max,
-                    tilt_min: tilt_param.min,
-                    tilt_max: tilt_param.max,
-                    zoom_min: zoom_param.min,
-                    zoom_max: zoom_param.max
+                    pan_min: pan_param !== undefined ? pan_param.min : 0,
+                    pan_max: pan_param !== undefined ? pan_param.max : 0,
+                    tilt_min: tilt_param !== undefined ? tilt_param.min : 0,
+                    tilt_max: tilt_param !== undefined ? tilt_param.max : 0,
+                    zoom_min: zoom_param !== undefined ? zoom_param.min : 0,
+                    zoom_max: zoom_param !== undefined ? zoom_param.max : 0
                 };
             }
 
@@ -127,7 +195,7 @@
             console.log(await api_get_zoom());
             $('#zoom').val(await api_get_zoom());
 
-            $("#controller").show();
+            $("#pip").show();
 
             var joystick_direction = new JoyStick("joystick_direction_div",
                 { "title": "joy_direction", "autoReturnToCenter": true,
@@ -161,7 +229,6 @@
                 event.preventDefault();
             });
 
-            $("#controls").width($("#video").width());
             $("#autofocus_switch").on("change", async () =>
             {
                 set_focus_knob_enabled();

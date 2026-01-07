@@ -37,7 +37,14 @@ class CameraMotionController:
 
     @property
     def ptz(self) -> (int, int, int):
-        return self._ptz.pan_absolute.value, self._ptz.tilt_absolute.value, self._ptz.zoom_absolute.value
+        if self._ptz is None:
+            return 0, 0, 0
+
+        pan = 0 if self._ptz.pan_absolute is None else self._ptz.pan_absolute.value
+        tilt = 0 if self._ptz.tilt_absolute is None else self._ptz.tilt_absolute.value
+        zoom = 0 if self._ptz.zoom_absolute is None else self._ptz.zoom_absolute.value
+
+        return pan, tilt, zoom
 
     @ptz.setter
     def ptz(self, value: (int, int, int)):
@@ -45,7 +52,8 @@ class CameraMotionController:
 
     @property
     def focus(self) -> (bool, int):
-        return self._focus_auto.value, self._focus_absolute.value
+        return False if self._focus_auto is None else bool(self._focus_auto.value), \
+            False if self._focus_absolute is None else int(self._focus_absolute.value)
 
     @focus.setter
     def focus(self, value: (bool, int)):
