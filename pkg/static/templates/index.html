@@ -71,15 +71,10 @@
             </div>
             <div class="bottom">
                 <div class="column">
-                    <div id="joystick_direction_div" class="joystick"></div>
-                    <img id="joy_direction_image" src="/static/images/joystick-red.png"
-                     style="display: none"/>
+                    <div id="joystick_direction_div" class="roulette joystick"></div>
                 </div>
                 <div class="column">
-                    <div id="joystick_camera_div" class="joystick"></div>
-                    <img id="joy_camera_image"
-                     src="/static/images/joystick-green.png"
-                     style="display: none"/>
+                    <div id="joystick_camera_div" class="roulette joystick"></div>
                 </div>
                 <div class="bottom-clips">
                     <div class="bottom-clip">
@@ -97,7 +92,6 @@
                 </div>
                 <div class="bottom-switch"></div><div class="bump5"></div><div class="bump6"></div>
             </div>
-            <div class="roulette"></div>
             <div class="top-right"></div>
             <div class="spike-wheel"></div>
             <div id="zoom_div">
@@ -111,7 +105,7 @@
                 </webaudio-knob>
                 <webaudio-switch id="autofocus_switch" class="input-switch"
                                  src="/static/js/webaudio-controls/knobs/switch_toggle.png" type="toggle"
-                                 width="64" height="64" invert="1" value="1" tooltip="Переключить автофокус"/>
+                                 invert="1" value="1" tooltip="Переключить автофокус"/>
             </div>
         </div>
 
@@ -199,14 +193,12 @@
 
             var joystick_direction = new JoyStick("joystick_direction_div",
                 { "title": "joy_direction", "autoReturnToCenter": true,
-                  "image": "joy_direction_image",
                   "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d"
                 }, () => { if (!stop_send) api_send_direction(joystick_direction.GetDir(), joystick_direction.GetX(), joystick_direction.GetY()) });
 
             // c2933d
             var joystick_camera = new JoyStick("joystick_camera_div",
                 { "title": "joy_camera", "autoReturnToCenter": true,
-                  "image": "joy_camera_image",
                   "internalFillColor": "#303c2f", "internalStrokeColor": "#353a4a","externalStrokeColor": "#83928d" },
                   () =>
                   {
@@ -257,15 +249,38 @@
                     case "PTZRecord":
                         set_zoom(message.payload.zoom);
                     break;
-                    case 'Focus':
+                    case "Focus":
                         set_autofocus(message.payload.auto);
                         set_focus_value(message.payload.value);
                     break;
-                    case 'Reset':
+                    case "Reset":
+                    break;
+                    case "ConnectionInfo":
                     break;
                 }
                 stop_send = false;
             });
+
+            setInterval(async () =>
+            {
+                meter = $(".rads-value");
+                conn_info = await api_get_connection();
+
+                if (conn_info === undefined)
+                {
+                    return;
+                }
+
+                conn_info = JSON.parse(conn_info);
+                const min_wifi_level = 0;
+                const max_wifi_level = 100;
+                const min_deg_level = -90;
+                const max_deg_level = 90;
+                degrees = (conn_info.level - min_wifi_level) / (max_wifi_level - min_wifi_level) *
+                          (max_deg_level - min_deg_level) + min_deg_level;
+                console.debug("Wifi level: " + degrees)
+                meter.css("--rotation", degrees + "deg");
+            }, 1500);
         })();
         </script>
 

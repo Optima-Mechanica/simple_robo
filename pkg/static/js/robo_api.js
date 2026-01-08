@@ -111,6 +111,12 @@ async function api_get_controls()
 }
 
 
+async function api_get_connection()
+{
+    return $.getJSON("/api/connection");
+}
+
+
 async function api_reset()
 {
     console.log("api_reset()");

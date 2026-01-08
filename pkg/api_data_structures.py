@@ -47,6 +47,11 @@ class Direction(ExtBaseModel):
     y: int | None
 
 
+class ConnectionInfo(ExtBaseModel):
+    conn_type: str | None
+    level: int | None
+
+
 class ServerEventData(BaseModel):
     @computed_field
     @property

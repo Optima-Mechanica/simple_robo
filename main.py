@@ -26,8 +26,9 @@ from pkg.capturers.v4l_cameractrls import V4LCapturer as CameraCapturer
 
 from pkg.camera_motion_controller import CameraMotionController
 from pkg.robot_motion_controller import RobotMotionController, Direction as RobotDirection, Side
-from pkg.api_data_structures import PTZRecord, Focus, Direction, ServerEvent, ServerEventData
+from pkg.api_data_structures import PTZRecord, Focus, Direction, ServerEvent, ServerEventData, ConnectionInfo
 from pkg.frame_generator import FrameGenerator
+from pkg.wifi_monitor import get_wifi_signal_strength
 
 
 capturer = CameraCapturer(0)
@@ -148,6 +149,17 @@ async def camera_reset():
     errors = camera_motion_controller.reset()
     await message_queue.put(ServerEvent(data=ServerEventData(payload='reset')))
     return {'message': 'Camera was reset successfully!' }
+
+
+@app.get('/api/connection')
+async def wifi_info():
+    level = get_wifi_signal_strength()
+
+    if level is not None:
+        return ConnectionInfo.from_tuple(('wifi', level)).model_dump_json()
+
+    return ConnectionInfo.from_tuple((None, None)).model_dump_json()
+
 
 #@app.get('/{path:path}')
 #async def html_landing():
