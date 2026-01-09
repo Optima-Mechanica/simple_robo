@@ -1,0 +1,207 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=8; IE=7; IE=9; IE=10; IE=EDGE" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Robot controller</title>
+
+        <script type="text/javascript" src="/static/js/jquery-3.7.1.min.js"></script>
+        <script type="text/javascript" src="/static/js/joystick/joy.js"></script>
+        <script type="text/javascript" src="/static/js/input-knobs/input-knobs.js"></script>
+        <script type="text/javascript" src="/static/js/webaudio-controls/webcomponents-lite.js"></script>
+        <script type="text/javascript" src="/static/js/webaudio-controls/webaudio-controls.js"></script>
+        <script type="text/javascript" src="/static/js/robo_api.js"></script>
+        <link rel="stylesheet" href="/static/styles/general_style.css">
+    </head>
+    <body>
+        <div id="controller" style="display: none;">
+            <div id="hv">
+                <div class="view" id="video">
+                </div>
+            </div>
+
+            <div id="controls">
+                <div class="column">
+                    <div id="joystick_direction_div" class="joystick"></div>
+                    <img id="joy_direction_image"
+                        src="/static/images/joystick-red.png"
+                        style="display: none"
+                    />
+                </div>
+                <div class="column">
+                    <div id="joystick_camera_div" class="joystick"></div>
+                    <img id="joy_camera_image"
+                        src="/static/images/joystick-green.png"
+                        style="display: none"
+                    />
+                    <div id="zoom_div">
+                        <webaudio-knob id="zoom" src="/static/js/webaudio-controls/knobs/LittlePhatty.png" min="0" max="100" tooltip="Увеличение камеры">
+                        </webaudio-knob>
+                        <!-- <input id="zoom" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/> -->
+                    </div>
+                    <div id="focus_div">
+                        <webaudio-knob id="focus" src="/static/js/webaudio-controls/knobs/LittlePhatty.png" min="0" max="100" tooltip="Фокус камеры">
+                        </webaudio-knob>
+                        <!-- <input id="focus" type="range" class="input-knob" data-src="/static/js/input-knobs/images/knob70.png" data-sprites="100"/> -->
+                        <!-- <input checked="true" caption="Автофокус" id="autofocus_switch" type="checkbox" class="input-switch"
+                         data-src="/static/js/input-knobs/images/switch_offon.png" data-diameter="50"/> -->
+                        <webaudio-switch id="autofocus_switch" class="input-switch"
+                         src="/static/js/webaudio-controls/knobs/switch_toggle.png" type="toggle"
+                         width="64" height="64" invert="1" value="1" tooltip="Переключить автофокус"/>
+                    </div>
+                    <div id="reset_div">
+                        <img id="reset" class="round-button" src="/static/images/reset_pip.png" alt="Reset">
+                    </div>
+                    <div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        (async () =>
+        {
+            var stop_send = false;
+
+            function set_autofocus(enabled)
+            {
+                $("#autofocus_switch").prop("value", enabled);
+            }
+
+            function set_focus_value(value)
+            {
+                $('#focus').val(value);
+            }
+
+            async function get_server_values()
+            {
+                result = await api_get_controls();
+                console.log('Controls', result)
+
+                focus_param = result["data"].focus_absolute;
+
+                $("#focus").prop("min", focus_param.min);
+                $("#focus").prop("max", focus_param.max);
+
+                pan_param = result["data"].pan_absolute;
+                tilt_param = result["data"].tilt_absolute;
+                zoom_param = result["data"].zoom_absolute;
+
+                focus = await api_get_focus();
+                console.log('Focus', focus);
+                set_autofocus(focus["auto"]);
+                set_focus_value(focus["value"]);
+
+                return {
+                    pan_min: pan_param.min,
+                    pan_max: pan_param.max,
+                    tilt_min: tilt_param.min,
+                    tilt_max: tilt_param.max,
+                    zoom_min: zoom_param.min,
+                    zoom_max: zoom_param.max
+                };
+            }
+
+            function set_focus_knob_enabled()
+            {
+                $("#focus").prop("enable", !Boolean($("#autofocus_switch").prop("value")));
+            }
+
+            function set_zoom(value, zoom_min = ptz_limits.zoom_min, zoom_max = ptz_limits.zoom_max)
+            {
+                value = Math.min(Math.max(value, zoom_min), zoom_max);
+                $('#zoom').prop("value", value);
+                if (!stop_send) api_send_ptz(0, 0, Number($("#zoom").prop("value")));
+            }
+
+            const event_source = new EventSource('/event_stream');
+            const ptz_limits = await get_server_values();
+            console.log(ptz_limits);
+
+            const pan_scaler = (ptz_limits["pan_max"]- ptz_limits["pan_min"]) / ($("#joystick_camera_div").width() * 20000);
+            const tilt_scaler = (ptz_limits["tilt_max"] - ptz_limits["tilt_min"]) / ($("#joystick_camera_div").height() * 20000);
+            console.log('Pan scaler = ' + pan_scaler + ', tilt scaler = ' + tilt_scaler);
+
+            $("#zoom").prop("min", ptz_limits["zoom_min"]);
+            $("#zoom").prop("max", ptz_limits["zoom_max"]);
+            console.log(await api_get_zoom());
+            $('#zoom').val(await api_get_zoom());
+
+            $("#controller").show();
+
+            var joystick_direction = new JoyStick("joystick_direction_div",
+                { "title": "joy_direction", "autoReturnToCenter": true,
+                  "image": "joy_direction_image",
+                  "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d"
+                }, () => { if (!stop_send) api_send_direction(joystick_direction.GetDir(), joystick_direction.GetX(), joystick_direction.GetY()) });
+
+            // c2933d
+            var joystick_camera = new JoyStick("joystick_camera_div",
+                { "title": "joy_camera", "autoReturnToCenter": true,
+                  "image": "joy_camera_image",
+                  "internalFillColor": "#303c2f", "internalStrokeColor": "#353a4a","externalStrokeColor": "#83928d" },
+                  () =>
+                  {
+                      if (!stop_send) api_send_ptz(Math.floor(pan_scaler * joystick_camera.GetX()),
+                                                   Math.floor(tilt_scaler * joystick_camera.GetY()),
+                                                   Number($("#zoom").prop("value")))
+                  });
+
+            $("#video").on("mousewheel", function(event)
+            {
+                console.log("Delta = " + event.originalEvent.wheelDeltaY);
+                zoom_knob = $('#zoom');
+                scale = (zoom_knob.prop("max") - zoom_knob.prop("min")) / $('#video').height();
+                scale /= 5;
+
+                console.log("Zoom = " + zoom_knob.prop("min") + ", " + zoom_knob.prop("max") + ", scale = " + scale);
+                zoom_value = Math.round(Number(zoom_knob.val()) + scale * event.originalEvent.wheelDeltaY);
+                console.log('Zoom value = ' + event.originalEvent.wheelDeltaY + ", " + zoom_value);
+                set_zoom(zoom_value);
+                event.preventDefault();
+            });
+
+            $("#controls").width($("#video").width());
+            $("#autofocus_switch").on("change", async () =>
+            {
+                set_focus_knob_enabled();
+                if (!stop_send) await api_send_focus(Boolean($("#autofocus_switch").prop("value")), Number($("#focus").val()));
+            });
+
+            set_focus_knob_enabled();
+
+            $("#autofocus_switch").click();
+            $("#zoom").on("change", async () => api_send_ptz(0, 0, $('#zoom').prop("value")));
+            $("#focus").on("change", async () => await api_send_focus(Boolean($("#autofocus_switch").prop("value")), Number($("#focus").val())));
+
+            $("#reset").on("click", async () =>
+            {
+                $("#zoom").val(0);
+                if (!stop_send) await api_reset();
+            });
+
+            event_source.addEventListener("state_changed", event =>
+            {
+                message = JSON.parse(event.data)
+                console.log('Event: ' + message);
+                stop_send = true;
+                switch (message.event_type)
+                {
+                    case "PTZRecord":
+                        set_zoom(message.payload.zoom);
+                    break;
+                    case 'Focus':
+                        set_autofocus(message.payload.auto);
+                        set_focus_value(message.payload.value);
+                    break;
+                    case 'Reset':
+                    break;
+                }
+                stop_send = false;
+            });
+        })();
+        </script>
+
+    </body>
+</html>
