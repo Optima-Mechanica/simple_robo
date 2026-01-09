@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from pathlib import Path
 
 from third_party.cameractrls.cameractrls import V4L2_PIX_FMT_YUYV, V4L2_PIX_FMT_YVYU, V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YU12, V4L2_PIX_FMT_YV12
 from third_party.cameractrls.cameractrls import V4L2_PIX_FMT_NV12, V4L2_PIX_FMT_NV21
@@ -35,8 +36,8 @@ class FFMPEGCapturer(CameraCapturer):
     """
     Image capturer, uses ffmpeg.
     """
-    def __init__(self, camera_device: int):
-        super().__init__(0)
+    def __init__(self, camera_device: int | str | Path):
+        super().__init__(camera_device)
         self._ffmpeg_process = None
 
     def start_capturing(self):

@@ -22,6 +22,7 @@
                 </div>
                 <div class="top-button"></div>
                 <div class="screw1"></div><div class="screw2"></div>
+                <div class="screen-border-top"></div>
                 <div class="screen-border">
                     <div class="screen">
                         <div id="hv">
@@ -65,7 +66,6 @@
             </div>
             <div class="bump3"></div>
             <div class="bump4"></div>
-            <div class="tune-meter"></div>
             <div class="tune-wheel">
                 <div class="analog"></div>
             </div>
@@ -116,26 +116,35 @@
                                  invert="1" value="1" tooltip="Переключить автофокус"/>
             </div>
         </div>
-
         <script type="text/javascript">
-
-		function set_controls_size()
-		{
-		    const knob_size = Math.trunc($(".pip").width() * 0.063);
-            const switch_size = knob_size; // * 0.875;
-
-            $("#zoom").prop("width", knob_size).prop("height", knob_size);
-            $("#focus").prop("width", knob_size).prop("height", knob_size);
-            $("#autofocus_switch").prop("width", switch_size).prop("height", switch_size);
-
-		}
-
-        $(window).resize(set_controls_size);
-        $(window).ready(set_controls_size);
 
         (async () =>
         {
             var stop_send = false;
+
+            function make_joystick_dir()
+            {
+                return new JoyStick("joystick_direction_handle",
+                    { "title": "joy_direction", "autoReturnToCenter": true },
+                      (status) => { if (!stop_send) api_send_direction(status.cardinalDirection, status.x, status.y) });
+            }
+
+            function make_joystick_camera()
+            {
+                const pan_scaler = (ptz_limits["pan_max"]- ptz_limits["pan_min"]) / ($("#joystick_camera_div").width() * 20000);
+                const tilt_scaler = (ptz_limits["tilt_max"] - ptz_limits["tilt_min"]) / ($("#joystick_camera_div").height() * 20000);
+                console.log('Pan scaler = ' + pan_scaler + ', tilt scaler = ' + tilt_scaler);
+
+                return new JoyStick("joystick_camera_handle",
+                    { "title": "joy_camera", "autoReturnToCenter": true },
+                      (status) =>
+                      {
+                          if (!stop_send) api_send_ptz(Math.floor(pan_scaler * status.x),
+                                                       Math.floor(tilt_scaler * status.y),
+                                                       Number($("#zoom").prop("value")))
+                        });
+
+            }
 
             function set_autofocus(enabled)
             {
@@ -154,9 +163,9 @@
 
                 focus_constraints = result["data"].focus_absolute;
 
-				if (focus_constraints !== undefined)
+                if (focus_constraints !== undefined)
                 {
-				    $("#focus").prop("min", focus_constraints.min);
+                    $("#focus").prop("min", focus_constraints.min);
                     $("#focus").prop("max", focus_constraints.max);
                     $("#focus").prop("disabled", false);
                     $("#autofocus_switch").prop("disabled", false);
@@ -203,10 +212,6 @@
             const ptz_limits = await get_server_values();
             console.log(ptz_limits);
 
-            const pan_scaler = (ptz_limits["pan_max"]- ptz_limits["pan_min"]) / ($("#joystick_camera_div").width() * 20000);
-            const tilt_scaler = (ptz_limits["tilt_max"] - ptz_limits["tilt_min"]) / ($("#joystick_camera_div").height() * 20000);
-            console.log('Pan scaler = ' + pan_scaler + ', tilt scaler = ' + tilt_scaler);
-
             $("#zoom").prop("min", ptz_limits["zoom_min"]);
             $("#zoom").prop("max", ptz_limits["zoom_max"]);
             console.log(await api_get_zoom());
@@ -214,21 +219,25 @@
 
             $("#pip").show();
 
-            var joystick_direction = new JoyStick("joystick_direction_handle",
-                { "title": "joy_direction", "autoReturnToCenter": true,
-                  "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d",
-                }, (status) => { if (!stop_send) api_send_direction(status.cardinalDirection, status.x, status.y) });
+            var joystick_direction = make_joystick_dir()
+            var joystick_camera = make_joystick_camera()
 
-            // c2933d
-            var joystick_camera = new JoyStick("joystick_camera_handle",
-                { "title": "joy_camera", "autoReturnToCenter": true,
-                  "internalFillColor": "#303c2f", "internalStrokeColor": "#353a4a","externalStrokeColor": "#83928d" },
-                  (status) =>
-                  {
-                      if (!stop_send) api_send_ptz(Math.floor(pan_scaler * status.x),
-                                                   Math.floor(tilt_scaler * status.y),
-                                                   Number($("#zoom").prop("value")))
-                  });
+            function set_controls_size()
+            {
+                const knob_size = Math.trunc($(".pip").width() * 0.063);
+                const switch_size = knob_size; // * 0.875;
+
+                $("#zoom").prop("width", knob_size).prop("height", knob_size);
+                $("#focus").prop("width", knob_size).prop("height", knob_size);
+                $("#autofocus_switch").prop("width", switch_size).prop("height", switch_size);
+                joystick_direction.Stop();
+                joystick_direction = make_joystick_dir();
+                joystick_camera.Stop();
+                joystick_camera = make_joystick_camera();
+            }
+
+            $(window).resize(set_controls_size);
+            $(window).ready(set_controls_size);
 
             $("#video").on("mousewheel", function(event)
             {

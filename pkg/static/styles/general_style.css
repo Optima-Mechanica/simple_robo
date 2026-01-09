@@ -29,10 +29,11 @@ body
     margin: 5% 0 0 0.5%;
     border-radius: 12%;
     border-bottom-right-radius: 23%;
-    border-top: 2px solid #c3bfb4;
+    /*border-top: 2px solid #c3bfb4;
     /*border-top: 0.5% solid #c3bfb4;*/
     position:relative;
 }
+
 
 .pipfront
 {
@@ -60,24 +61,27 @@ body
     content: "";
     display: block;
     width: 69%;
-    height: 13.75%;
+    height: 70%;
+	bottom: 5%;
     background: linear-gradient(#776754, #726350);
     margin-top: 0;
     margin-left: 19%;
     border-bottom-left-radius: 7%;/* todo: fix radius */
     border-bottom-right-radius: 7%;/* todo: fix radius */
     box-shadow: 0px 2px 4px #4e4037;/* todo: fix to % */
+	z-index: -6;
+	position: absolute;
 }
 
 
 .top
 {
-    width: 27%;
+    width: 26.7%;
     height: 12.5%;
     background: #111;
     position: absolute;
     top: -3.75%;
-    left: 37%;
+    left: 36.7%;
     z-index: -4;
 }
 
@@ -102,24 +106,23 @@ body
 
 .top:before
 {
-    position:absolute;
+    position: absolute;
     right: -3%;
     border-top-right-radius: 30%;
     border-top-left-radius: 70%;
-
 }
 
 
 .top-panel
 {
     width: 108%;
-    height: 80%;
+    height: 100%;
     left: -4.2%;
-    top: 30%;
+    bottom: -30%;
     background: #5a5f5b;
     position: absolute;
-    border-top-left-radius: 11.5%;
-    border-top-right-radius: 11.5%;
+    border-top-left-radius: 15.5%;
+    border-top-right-radius: 15.5%;
 }
 
 
@@ -129,29 +132,12 @@ body
     display: block;
     background: #272b2a;
     width: 100%;
-    height: 75%;
-    margin: 3.75% auto 0 auto; /* todo: fix it! */
-    position:relative;
-    z-index: 99;
-    border-top-right-radius: 11.5%;
-    border-top-left-radius: 11.5%;
-    border-bottom-right-radius: 3.8%;
-    border-bottom-left-radius: 3.8%;
-}
-
-
-.top-panel:after
-{
-    content: "Пульт робота";
-    color: #151515;
-    font-family: 'Courier New', sans-serif;
-    letter-spacing: 2px;
-    font-size: 12pt;
-    text-shadow: 0px 0px 0.5px #444;/* todo: fix to % */
+    height: 85%;
+	bottom: 0;
     position: absolute;
-    top: 46%;
-    left: 21.6%;
     z-index: 99;
+    border-top-right-radius: 15.5%;
+    border-top-left-radius: 15.5%;
 }
 
 
@@ -167,6 +153,7 @@ body
     border-top-left-radius: 38%;
     border-top: 7.7% solid #444;
     transform: rotate(33deg);
+    z-index: 5;
 }
 
 
@@ -181,6 +168,19 @@ body
     margin-top: -12.7%;
     border-radius: 15%;
     border: 3.3% solid #333;
+    z-index: -1;
+}
+
+
+.top-button:hover:after
+{
+    transform: translate3d(-0.2px, 1px, 0px);
+}
+
+
+.top-button:active:after
+{
+    transform: translate3d(-0.8px, 4px, 0px);
 }
 
 
@@ -447,12 +447,26 @@ body
     margin-top: 0;
     border-radius: 12.5%;
     padding-top: 5%;
-    /*border-top: 2.5% solid #5a5f5b;*/
-    border-top: 20px solid #5a5f5b;/* todo: fix to % */
     border-bottom: 5px solid #3a3e41;/* todo: fix to % */
     /*border-bottom: 1.25% solid #3a3e41;*/
-    position:relative;
+    position: relative;
     z-index: -5;
+}
+
+
+.screen-border-top
+{
+	content: "";
+    width: 82.5%;
+    height: 70%;
+	left: 8.8%;
+	top: 5%;
+    padding-top: 5%;
+    margin: auto;
+	background: #5a5f5b;
+    border-radius: 12.5%;
+	position: absolute;
+	z-index: -6;
 }
 
 
@@ -570,7 +584,7 @@ div:has(> div.view)
 
 .rads:after
 {
-    content: "Wi-Fi";
+    content: "";
     position: absolute;
     top: 45%;
     right: 62.5%;
@@ -580,11 +594,11 @@ div:has(> div.view)
 
 .rads-meter
 {
-    width:35%;
-    position:absolute;
+    width: 35%;
+    position: absolute;
     top: 15%;
-    height:69%;
-    right:14.7%;
+    height: 69%;
+    right: 14.7%;
     border-top-right-radius: 58.8%;/* todo: fix it!*/
     border-bottom-right-radius: 58.8%;/* todo: fix it!*/
     background: #e4ebe4;
@@ -681,44 +695,6 @@ div:has(> div.view)
 }
 
 
-.tune-meter
-{
-    width: 4.76%;
-    height: 9.5%;
-    position: absolute;
-    right: 10.3%;
-    top: 65%;
-    border-bottom-left-radius: 100px;/* todo: fix to % */
-    border: 30px solid #47473f;/* todo: fix to % */
-    border-right: 0;
-    border-top:0;
-}
-
-
-.tune-meter:before
-{
-    content: "";
-    display: block;
-    width: 73%;
-    height: 8.3%;
-    background: #a45764;
-    position: absolute;
-    left: -73%;
-    top: 51.6%;
-    box-shadow: -1px 0px 2px #332c26; /* todo: fix to % */
-    transform:rotate(-8deg)
-}
-
-
-.tune-meter:after
-{
-    content: "TUNE";
-    position: absolute;
-    top: -93%;
-    right: -10%;
-}
-
-
 .wheel
 {
     width: 8.73%;
@@ -806,7 +782,7 @@ div:has(> div.view)
     height: 26.25%;
     background: linear-gradient(#7d6855, #726350, #211a14);
     position:absolute;
-    bottom: -3.1%;
+    bottom: -3%;
     border-bottom-right-radius: 40%;
     border-bottom-left-radius: 40%;
     border-top-left-radius: 25%;
@@ -870,8 +846,8 @@ div:has(> div.view)
     width: 7.1%;
     aspect-ratio: 1;
     background: #000;
-    position:absolute;
-    bottom: 6.25%;
+    position: absolute;
+    bottom: 8.25%;
     right: 19.6%;
     border-radius: 400%;
 }
@@ -1046,10 +1022,12 @@ div:has(> div.view)
     left: 5%;
 }
 
+
 #joystick_camera_div
 {
     right: 5%;
 }
+
 
 #zoom_div
 {

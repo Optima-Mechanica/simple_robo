@@ -20,8 +20,8 @@ TP_DIR = SCRIPT_DIR / 'third_party'
 
 sys.path.extend([str(sp) for sp in [(TP_DIR / 'cameractrls').absolute(), TP_DIR.absolute()]])
 
-#from pkg.capturers.opencv2 import CV2Capturer as CameraCapturer
-from pkg.capturers.v4l_cameractrls import V4LCapturer as CameraCapturer
+from pkg.capturers.opencv2 import CV2Capturer as CameraCapturer
+#from pkg.capturers.v4l_cameractrls import V4LCapturer as CameraCapturer
 #from pkg.capturers.ffmpeg import FFMPEGCapturer as CameraCapturer
 
 from pkg.camera_motion_controller import CameraMotionController

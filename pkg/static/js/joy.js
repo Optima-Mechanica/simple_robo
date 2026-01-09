@@ -103,24 +103,33 @@ var JoyStick = (function(container, parameters, callback)
     var movedX = centerX;
     var movedY = centerY;
 
+    moveJoystick();
+
+	const controller = new AbortController();
+
     // Check if the device support the touch or not
     if("ontouchstart" in document.documentElement)
     {
-        objContainer.addEventListener("touchstart", onTouchStart, false);
-        document.addEventListener("touchmove", onTouchMove, false);
-        document.addEventListener("touchend", onTouchEnd, false);
+        objContainer.addEventListener("touchstart", onTouchStart, { "capture": false, "signal": controller.signal });
+        document.addEventListener("touchmove", onTouchMove, { "capture": false, "signal": controller.signal });
+        document.addEventListener("touchend", onTouchEnd, { "capture": false, "signal": controller.signal });
     }
     else
     {
-        objContainer.addEventListener("mousedown", onMouseDown, false);
-        document.addEventListener("mousemove", onMouseMove, false);
-        document.addEventListener("mouseup", onMouseUp, false);
+        objContainer.addEventListener("mousedown", onMouseDown, { "capture": false, "signal": controller.signal });
+        document.addEventListener("mousemove", onMouseMove, { "capture": false, "signal": controller.signal });
+        document.addEventListener("mouseup", onMouseUp, { "capture": false, "signal": controller.signal });
     }
 
 
     /******************************************************
      * Public methods
      *****************************************************/
+
+	this.Stop = function()
+	{
+		controller.abort();
+	}
 
     /**
      * @desc The width of objContainer

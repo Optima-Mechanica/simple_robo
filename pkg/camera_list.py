@@ -26,7 +26,5 @@ def list_cameras(dirs: list[Path | str] = v4ldirs, ptz_only: bool = True):
         except Exception as e:
             logging.error(f'os.open: {e}')
             raise
-        finally:
-            os.close(camera_fd)
 
     return devices

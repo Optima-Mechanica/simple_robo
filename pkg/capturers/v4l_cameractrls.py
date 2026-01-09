@@ -2,6 +2,7 @@ import ctypes
 from fcntl import ioctl
 import io
 import logging
+from pathlib import Path
 from select import poll, POLLIN
 import struct
 import sys
@@ -28,7 +29,7 @@ class V4LCapturer(CameraCapturer):
     V4L capturer, uses cameractrls library.
     """
 
-    def __init__(self, camera_device: int):
+    def __init__(self, camera_device: int | str | Path):
         super().__init__(camera_device)
 
         self._camera = V4L2Camera(self.camera_device)
@@ -119,6 +120,7 @@ class V4LCapturer(CameraCapturer):
             # Ignore decode errors, some cameras only send imperfect frames.
             # ptr = self._outbuffer
         else:
+            logging.debug('Pixel format: %d', self._camera.pixelformat)
             Image.frombytes('RGB', (self._camera.width, self._camera.height), ptr, 'raw') \
                 .save(img_byte_arr, format='jpeg')
 
