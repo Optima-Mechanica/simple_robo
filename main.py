@@ -29,12 +29,28 @@ from pkg.robot_motion_controller import RobotMotionController, Direction as Robo
 from pkg.api_data_structures import PTZRecord, Focus, Direction, ServerEvent, ServerEventData, ConnectionInfo
 from pkg.frame_generator import FrameGenerator
 from pkg.wifi_monitor import get_wifi_signal_strength
+from pkg.camera_list import list_cameras
 
 
-capturer = CameraCapturer(0)
+cameras = list_cameras()
+
+if not cameras:
+    logging.warning('PTZ cameras were not found!')
+    cameras = list_cameras(ptz_only=False)
+
+if not cameras:
+    logging.error('Cameras were not found!')
+    sys.exit(3)
+
+
+CAMERA_PATH = cameras[0].real_path
+
+logging.info('Selected camera: %s', cameras[0].path)
+
+capturer = CameraCapturer(CAMERA_PATH)
 frame_generator = FrameGenerator(capturer)
 templates = Jinja2Templates(directory=(STATIC_DIR / 'templates'))
-camera_motion_controller = CameraMotionController(0)
+camera_motion_controller = CameraMotionController(CAMERA_PATH)
 robot_motion_controller = RobotMotionController()
 message_queue: asyncio.Queue[ServerEvent] = asyncio.Queue()
 

@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 import sys
 
 from third_party.cameractrls.cameractrls import CameraCtrls, PTZController, V4L2Ctrl, \
@@ -11,8 +12,12 @@ class CameraMotionController:
     Camera PTZ and focus controller.
     """
 
-    def __init__(self, camera_device: int):
-        self._device = f'/dev/video{camera_device}'
+    def __init__(self, camera_device: int | str | Path):
+        if isinstance(camera_device, int):
+            self._device = f'/dev/video{camera_device}'
+        else:
+            self._device = str(camera_device)
+
         try:
             self._camera_fd = os.open(self._device, os.O_RDWR, 0)
         except Exception as e:
