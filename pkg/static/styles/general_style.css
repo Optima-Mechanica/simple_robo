@@ -11,7 +11,10 @@ body
     font-family:'Droid Sans', sans-serif;
     color: #d8c99e;
     text-transform: uppercase;
-    margin: auto;
+    margin: 0;
+    display: flex;
+    justify-content: center; /* Horizontally centers content */
+    align-items: center;     /* Vertically centers content */
 }
 
 
@@ -23,7 +26,7 @@ body
     aspect-ratio:630 / 400;
     background: #8b7867;
     background: linear-gradient(#8b7867,#4f4138);
-    margin: 16% auto 0 auto;
+    margin: 5% 0 0 0.5%;
     border-radius: 12%;
     border-bottom-right-radius: 23%;
     border-top: 2px solid #c3bfb4;
@@ -358,7 +361,7 @@ body
     background: #c3b9af;
     border-radius: 400%;
     box-shadow: 0px 2px 3px #483a31; /* todo: fix to % */
-    z-index: 99;
+    z-index: 2;
 }
 
 
@@ -372,7 +375,7 @@ body
     background: #c3b9af;
     border-radius: 400%;
     box-shadow: 0px 2px 3px #483a31; /* todo: fix to % */
-    z-index:99;
+    z-index: 2;
 }
 
 
@@ -387,7 +390,7 @@ body
     border-radius: 400%;
     box-shadow: 0px 2px 3px #483a31;/* todo: fix to % */
     border-top: 1px solid #c3bfb4;/* todo: fix to % */
-    z-index:99;
+    z-index: 2;
 }
 
 
@@ -402,7 +405,7 @@ body
     border-radius: 400%;
     box-shadow: 0px 2px 3px #483a31; /* todo: fix to % */
     border-top:1px solid #c3bfb4; /* todo: fix to % */
-    z-index:99;
+    z-index: 2;
 }
 
 
@@ -416,7 +419,7 @@ body
     background: #8c837c;
     border-radius: 400%;
     box-shadow: 0px 2px 3px #483a31;/* todo: fix to % */
-    z-index: 99;
+    z-index: 2;
 }
 
 
@@ -430,7 +433,7 @@ body
     background: #8c837c;
     border-radius: 400%;
     box-shadow: 0px 2px 3px #483a31; /* todo: fix to % */
-    z-index:99;
+    z-index: 2;
 }
 
 
@@ -567,9 +570,9 @@ div:has(> div.view)
 
 .rads:after
 {
-    content: "RADS";
+    content: "Wi-Fi";
     position: absolute;
-    top: 39.4%;
+    top: 45%;
     right: 62.5%;
     letter-spacing: -0.2px;/* todo: fix to % */
 }
@@ -766,6 +769,7 @@ div:has(> div.view)
     top: 41%;
     left: -105%;
     border-right: 10px solid #222222;/* todo: fix to % */
+    margin: 0;
     z-index:-3;
 }
 
@@ -924,15 +928,15 @@ div:has(> div.view)
     background: #000;
     position: absolute;
     right: 16.7%;
-    bottom: 5%;
-    width: 5.9%;
-    height: 6.25%;
+    bottom: 45%;
+    width: 21.9%;
+    height: 24.7%;
     border-top-left-radius: 62%;
     border-top-right-radius: 62%;
 }
 
 
-.roulette:after
+.roulette-handle
 {
     content: "";
     display: block;
@@ -940,25 +944,25 @@ div:has(> div.view)
     height: 140%;
     background: #000;
     position:relative;
-    margin-top: 16%;
-    z-index: 0;
+    top: 35%;
+    z-index: 3;
     border-radius: 400%;
     border-top: 1px solid #444;/* todo: fix to % */
 }
 
 
-.roulette:before
+.roulette-handle-center
 {
     content: "";
     display: block;
-    width: 41%;
+    width: 40%;
     aspect-ratio: 1;
     border-radius: 400%;
-    top: 68%;
+    top: 28%;
     left: 30%;
     border-bottom: 1px solid #555;/* todo: fix to % */
     position: absolute;
-    z-index: 3;
+    z-index: 4;
 }
 
 
@@ -1037,20 +1041,14 @@ div:has(> div.view)
 */
 
 
-/* ------------------- */
-
-.joystick
-{
-}
-
 #joystick_direction_div
 {
-    left: 0;
+    left: 5%;
 }
 
 #joystick_camera_div
 {
-    right: 0;
+    right: 5%;
 }
 
 #zoom_div
@@ -1061,10 +1059,6 @@ div:has(> div.view)
     top: 2%;
 }
 
-#zoom
-{
-    height: 100%;
-}
 
 #focus_div
 {
@@ -1078,7 +1072,7 @@ div:has(> div.view)
 {
     position: absolute;
     left: 0px;
-    bottom: -20%;
+    bottom: -25%;
     width: 80%;
     height: 80%;
 }

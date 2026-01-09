@@ -177,7 +177,8 @@ async def main(host: str = '0.0.0.0', port: int = 8000):
     Main entry point to run the Uvicorn server.
     """
 
-    config = uvicorn.Config(app, host=host, port=port)
+    config = uvicorn.Config(app, host=host, port=port, reload_dirs=['pkg'], reload_excludes=['pkg/static'],
+                            use_colors=True, timeout_graceful_shutdown=3)
     server = uvicorn.Server(config)
 
     # Run the server

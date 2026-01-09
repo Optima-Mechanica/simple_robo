@@ -7,7 +7,7 @@
         <title>Robot controller</title>
 
         <script type="text/javascript" src="/static/js/jquery-3.7.1.min.js"></script>
-        <script type="text/javascript" src="/static/js/joystick/joy.js"></script>
+        <script type="text/javascript" src="/static/js/joy.js"></script>
         <script type="text/javascript" src="/static/js/input-knobs/input-knobs.js"></script>
         <script type="text/javascript" src="/static/js/webaudio-controls/webcomponents-lite.js"></script>
         <script type="text/javascript" src="/static/js/webaudio-controls/webaudio-controls.js"></script>
@@ -71,10 +71,18 @@
             </div>
             <div class="bottom">
                 <div class="column">
-                    <div id="joystick_direction_div" class="roulette joystick"></div>
+                    <div id="joystick_direction_div" class="roulette joystick">
+                        <div id="joystick_direction_handle" class="roulette-handle">
+                            <div class="roulette-handle-center"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="column">
-                    <div id="joystick_camera_div" class="roulette joystick"></div>
+                    <div id="joystick_camera_div" class="roulette joystick">
+                        <div id="joystick_camera_handle" class="roulette-handle">
+                            <div class="roulette-handle-center"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="bottom-clips">
                     <div class="bottom-clip">
@@ -110,6 +118,21 @@
         </div>
 
         <script type="text/javascript">
+
+		function set_controls_size()
+		{
+		    const knob_size = Math.trunc($(".pip").width() * 0.063);
+            const switch_size = knob_size; // * 0.875;
+
+            $("#zoom").prop("width", knob_size).prop("height", knob_size);
+            $("#focus").prop("width", knob_size).prop("height", knob_size);
+            $("#autofocus_switch").prop("width", switch_size).prop("height", switch_size);
+
+		}
+
+        $(window).resize(set_controls_size);
+        $(window).ready(set_controls_size);
+
         (async () =>
         {
             var stop_send = false;
@@ -191,19 +214,19 @@
 
             $("#pip").show();
 
-            var joystick_direction = new JoyStick("joystick_direction_div",
+            var joystick_direction = new JoyStick("joystick_direction_handle",
                 { "title": "joy_direction", "autoReturnToCenter": true,
-                  "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d"
-                }, () => { if (!stop_send) api_send_direction(joystick_direction.GetDir(), joystick_direction.GetX(), joystick_direction.GetY()) });
+                  "internalFillColor": "#563432", "internalStrokeColor": "#353331", "externalStrokeColor": "#83928d",
+                }, (status) => { if (!stop_send) api_send_direction(status.cardinalDirection, status.x, status.y) });
 
             // c2933d
-            var joystick_camera = new JoyStick("joystick_camera_div",
+            var joystick_camera = new JoyStick("joystick_camera_handle",
                 { "title": "joy_camera", "autoReturnToCenter": true,
                   "internalFillColor": "#303c2f", "internalStrokeColor": "#353a4a","externalStrokeColor": "#83928d" },
-                  () =>
+                  (status) =>
                   {
-                      if (!stop_send) api_send_ptz(Math.floor(pan_scaler * joystick_camera.GetX()),
-                                                   Math.floor(tilt_scaler * joystick_camera.GetY()),
+                      if (!stop_send) api_send_ptz(Math.floor(pan_scaler * status.x),
+                                                   Math.floor(tilt_scaler * status.y),
                                                    Number($("#zoom").prop("value")))
                   });
 

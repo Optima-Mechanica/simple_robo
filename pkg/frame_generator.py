@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import AsyncGenerator
 
 from .capturers.capturer import CameraCapturer
@@ -25,6 +26,6 @@ class FrameGenerator:
                 await asyncio.sleep(0)
 
         except (asyncio.CancelledError, GeneratorExit):
-            print('Frame generation cancelled.')
+            logging.info('Frame generation cancelled.')
         finally:
-            print('Frame generator exited.')
+            logging.info('Frame generator exited.')
