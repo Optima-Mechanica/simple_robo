@@ -1,3 +1,6 @@
 [submodule "third_party/cameractrls"]
 	path = third_party/cameractrls
 	url = https://github.com/soyersoyer/cameractrls
+[submodule "pkg/static/js/webaudio-controls"]
+	path = pkg/static/js/webaudio-controls
+	url = https://github.com/g200kg/webaudio-controls
